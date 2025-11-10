@@ -272,7 +272,7 @@ rm -rf node_modules/.vite
 npm run test:run
 ```
 
-### **Error de módulos**
+### **Error de módulssos**
 ```bash
 # Verificar que todas las dependencias estén instaladas
 npm install -D vitest @vitest/ui @testing-library/react @vitejs/plugin-react
