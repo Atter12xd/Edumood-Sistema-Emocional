@@ -1,0 +1,17 @@
+name = "whatsapp-pixel"
+uid = "1a444c6e-5794-d298-cfdd-6f38bdd006ae3e99bf3b"
+type = "web_pixel_extension"
+
+
+runtime_context = "strict"
+
+[settings]
+type = "object"
+
+[settings.fields.accountID]
+name = "Account ID"
+description = "Account ID"
+type = "single_line_text_field"
+validations =  [
+  { name = "min", value = "1" }
+]

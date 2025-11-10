@@ -1,0 +1,659 @@
+{% comment %} === INFORMACIÓN DEL PROPIETARIO DE LA TIENDA === {% endcomment %}
+{% assign shop_owner_first_name = shop.billing_address.first_name %}
+{% assign shop_owner_last_name = shop.billing_address.last_name %}
+{% assign shop_owner_email = shop.email %}
+{% assign shop_owner_phone = shop.billing_address.phone %}
+{% assign shop_owner_address = shop.billing_address.address1 %}
+{% assign shop_owner_city = shop.billing_address.city %}
+{% assign shop_owner_country = shop.billing_address.country %}
+{% assign shop_name = shop.name %}
+{% assign shop_id = shop.id %}
+
+{% comment %} Leer configuración COMPLETA desde metafields {% endcomment %}
+{% assign phone_number = shop.metafields.whatsapp_widget.phone_number %}
+{% assign message = shop.metafields.whatsapp_widget.message %}
+{% assign button_color = shop.metafields.whatsapp_widget.button_color %}
+{% assign position = shop.metafields.whatsapp_widget.position %}
+{% assign icon = shop.metafields.whatsapp_widget.icon %}
+
+{% comment %} Nuevos campos del formulario {% endcomment %}
+{% assign button_style = shop.metafields.whatsapp_widget.button_style %}
+{% assign logo_url = shop.metafields.whatsapp_widget.logo_url %}
+{% assign active_hours = shop.metafields.whatsapp_widget.active_hours %}
+{% assign start_time = shop.metafields.whatsapp_widget.start_time %}
+{% assign end_time = shop.metafields.whatsapp_widget.end_time %}
+{% assign is_active_24_hours = shop.metafields.whatsapp_widget.is_active_24_hours %}
+{% assign active_days = shop.metafields.whatsapp_widget.active_days %}
+
+{% comment %} Solo mostrar si está habilitado Y si hay datos del formulario {% endcomment %}
+{% if block.settings.enable_widget and phone_number != blank and message != blank %}
+
+{% comment %} Debug: Información del propietario {% endcomment %}
+<script>
+  console.log('=== INFORMACIÓN DEL PROPIETARIO ===');
+  console.log('Propietario de la tienda:', {
+    firstName: '{{ shop_owner_first_name }}',
+    lastName: '{{ shop_owner_last_name }}',
+    fullName: '{{ shop_owner_first_name }} {{ shop_owner_last_name }}',
+    email: '{{ shop_owner_email }}',
+    phone: '{{ shop_owner_phone }}',
+    address: '{{ shop_owner_address }}',
+    city: '{{ shop_owner_city }}',
+    country: '{{ shop_owner_country }}',
+    shopName: '{{ shop_name }}',
+    shopId: '{{ shop_id }}',
+    source: 'shop.billing_address'
+  });
+</script>
+
+{% comment %} Debug: Verificar TODOS los datos del formulario {% endcomment %}
+<script>
+  console.log('=== WHATSAPP WIDGET DEBUG COMPLETO ===');
+  console.log('Metafields disponibles:', {{ shop.metafields.whatsapp_widget | json }});
+  console.log('Configuración COMPLETA desde formulario:', {
+    // Campos originales
+    phone: '{{ phone_number }}',
+    message: '{{ message }}',
+    color: '{{ button_color }}',
+    position: '{{ position }}',
+    icon: '{{ icon }}',
+    
+    // Nuevos campos
+    buttonStyle: '{{ button_style }}',
+    logoUrl: '{{ logo_url }}',
+    activeHours: '{{ active_hours }}',
+    startTime: '{{ start_time }}',
+    endTime: '{{ end_time }}',
+    isActive24Hours: '{{ is_active_24_hours }}',
+    activeDays: '{{ active_days }}',
+    
+    source: 'formulario completo',
+    timestamp: '{{ "now" | date: "%Y-%m-%d %H:%M:%S" }}'
+  });
+</script>
+
+{% comment %} Información del propietario disponible globalmente {% endcomment %}
+<script>
+  // Información del propietario disponible globalmente
+  window.shopOwnerInfo = {
+    firstName: '{{ shop_owner_first_name }}',
+    lastName: '{{ shop_owner_last_name }}',
+    fullName: '{{ shop_owner_first_name }} {{ shop_owner_last_name }}',
+    email: '{{ shop_owner_email }}',
+    phone: '{{ shop_owner_phone }}',
+    address: '{{ shop_owner_address }}',
+    city: '{{ shop_owner_city }}',
+    country: '{{ shop_owner_country }}',
+    shopName: '{{ shop_name }}',
+    shopId: '{{ shop_id }}'
+  };
+  
+  console.log('🏪 Información del propietario cargada:', window.shopOwnerInfo);
+  
+  // Función para usar el teléfono del propietario como predeterminado
+  function useOwnerPhoneAsDefault() {
+    if (window.shopOwnerInfo.phone && window.shopOwnerInfo.phone !== '') {
+      console.log('📞 Usando teléfono del propietario:', window.shopOwnerInfo.phone);
+      return window.shopOwnerInfo.phone;
+    }
+    return '{{ phone_number }}'; // Fallback al teléfono configurado
+  }
+  
+  // Función para obtener información completa del propietario
+  function getOwnerInfo() {
+    return window.shopOwnerInfo;
+  }
+</script>
+
+<!-- Cargar JavaScript externo -->
+<script src="{{ 'whatsapp-rotation.js' | asset_url }}"></script>
+
+<!-- Configuración global -->
+<script>
+window.shopConfig = {
+  shopId: 'gid://shopify/Shop/{{ shop.id }}',
+  shopIdNumber: '{{ shop.id }}',
+  fallbackPhone: '{{ phone_number }}',
+  message: '{{ message | escape }}',
+  openInNewTab: {{ block.settings.open_in_new_tab | default: true }},
+  
+  schedule: {
+    isActive24Hours: '{{ is_active_24_hours }}' === 'true',
+    startTime: '{{ start_time }}',
+    endTime: '{{ end_time }}',
+    activeDays: '{{ active_days }}'.split(',').map(d => d.trim()).filter(d => d)
+  }
+};
+
+// Variable global para la instancia del sistema de rotación
+window.whatsappRotationInstance = null;
+
+console.log('🚀 Configuración cargada');
+</script>
+
+{% comment %} SCRIPT PRINCIPAL - Control de horarios con JavaScript {% endcomment %}
+<script>
+// FUNCIÓN PRINCIPAL: Verificar si widget está activo según horarios REALES
+function isWidgetActiveNow() {
+  // Si está configurado para 24 horas, siempre activo
+  const isActive24Hours = '{{ is_active_24_hours }}';
+  console.log('🕐 Configuración 24 horas:', isActive24Hours);
+  
+  if (isActive24Hours === 'true') {
+    console.log('✅ Widget activo: Configurado para 24 horas');
+    return true;
+  }
+  
+  // Usar JavaScript para obtener tiempo REAL del usuario
+  const now = new Date();
+  
+  // CORRECCIÓN: Usar 'long' en lugar de 'lowercase'
+  const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+  const currentHour = now.getHours();
+  const currentMinute = now.getMinutes();
+  const currentTime = currentHour * 100 + currentMinute;
+  
+  console.log('🕐 Tiempo REAL del usuario:', {
+    day: currentDay,
+    hour: currentHour,
+    minute: currentMinute,
+    timeNumber: currentTime,
+    fullDate: now.toString()
+  });
+  
+  // Verificar si hoy está en los días activos
+  const activeDays = '{{ active_days }}';
+  const daysArray = activeDays.split(',').map(day => day.trim()).filter(day => day);
+  
+  console.log('📅 Días activos configurados:', daysArray);
+  console.log('📅 Día actual:', currentDay);
+  
+  if (!daysArray.includes(currentDay)) {
+    console.log('❌ Widget inactivo: Día no permitido');
+    return false;
+  }
+  
+  // Verificar horario
+  const startTime = '{{ start_time }}';
+  const endTime = '{{ end_time }}';
+  
+  if (startTime && endTime) {
+    // Convertir horarios a números para comparación
+    const startParts = startTime.split(':');
+    const endParts = endTime.split(':');
+    const startTimeNumber = parseInt(startParts[0]) * 100 + parseInt(startParts[1]);
+    const endTimeNumber = parseInt(endParts[0]) * 100 + parseInt(endParts[1]);
+    
+    console.log('🕐 Horarios configurados:', {
+      start: startTime,
+      end: endTime,
+      startNumber: startTimeNumber,
+      endNumber: endTimeNumber,
+      current: currentTime
+    });
+    
+    // NUEVA LÓGICA: Manejar horarios que cruzan medianoche
+    if (startTimeNumber > endTimeNumber) {
+      // Horario nocturno (ej: 21:00 - 05:55)
+      const isActive = currentTime >= startTimeNumber || currentTime <= endTimeNumber;
+      console.log(isActive ? '✅ Widget activo: Horario nocturno' : '❌ Widget inactivo: Fuera de horario nocturno');
+      return isActive;
+    } else {
+      // Horario normal (ej: 09:00 - 18:00)
+      const isActive = currentTime >= startTimeNumber && currentTime <= endTimeNumber;
+      console.log(isActive ? '✅ Widget activo: Horario normal' : '❌ Widget inactivo: Fuera de horario normal');
+      return isActive;
+    }
+  }
+  
+  // Si no hay horarios configurados, asumir que está activo
+  console.log('⚠️ Sin horarios configurados, widget activo por defecto');
+  return true;
+}
+
+// Función para mostrar notificación de horario
+function showScheduleNotification() {
+  const notification = document.createElement('div');
+  notification.id = 'whatsapp-schedule-notification';
+  notification.style.cssText = `
+    position: fixed;
+    {% case position %}
+      {% when 'top-left' %}
+        top: 90px;
+        left: 20px;
+      {% when 'top-right' %}
+        top: 90px;
+        right: 20px;
+      {% when 'bottom-left' %}
+        bottom: 90px;
+        left: 20px;
+      {% when 'bottom-right' %}
+        bottom: 90px;
+        right: 20px;
+      {% else %}
+        bottom: 90px;
+        right: 20px;
+    {% endcase %}
+    z-index: 10000;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    padding: 16px 20px;
+    border-radius: 16px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    max-width: 280px;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.4s ease;
+    border: 2px solid rgba(255,255,255,0.2);
+  `;
+  
+  const startTime = '{{ start_time }}';
+  const endTime = '{{ end_time }}';
+  
+  notification.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <div style="font-size: 24px;">🕐</div>
+      <div>
+        <div style="font-size: 16px; font-weight: 700;">Fuera de horario</div>
+        <div style="font-size: 13px; opacity: 0.9;">Horario de atención:</div>
+        <div style="font-size: 14px; font-weight: 700; margin-top: 4px;">${startTime} - ${endTime}</div>
+        {% if shop_owner_first_name != blank %}
+        <div style="font-size: 12px; opacity: 0.8; margin-top: 4px;">Propietario: {{ shop_owner_first_name }} {{ shop_owner_last_name }}</div>
+        {% endif %}
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Animar entrada
+  setTimeout(() => {
+    notification.style.opacity = '1';
+    notification.style.transform = 'translateY(0)';
+  }, 10);
+  
+  // Remover después de 4 segundos
+  setTimeout(() => {
+    notification.style.opacity = '0';
+    notification.style.transform = 'translateY(-20px)';
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 400);
+  }, 4000);
+}
+
+// Verificar horarios al cargar el script
+const isCurrentlyActive = isWidgetActiveNow();
+console.log('🕐 Estado del widget según horarios REALES:', isCurrentlyActive ? 'ACTIVO' : 'INACTIVO');
+
+// FUNCIÓN PRINCIPAL DE ROTACIÓN AUTOMÁTICA CON ENDPOINT
+async function abrirWhatsAppConRotacion() {
+  console.log('🚀 BOTÓN CLICKEADO - Función ejecutada');
+  
+  if (!isWidgetActiveNow()) {
+    console.log('❌ Fuera de horario');
+    showScheduleNotification();
+    return;
+  }
+
+  // SISTEMA DE ROTACIÓN AUTOMÁTICA CON ENDPOINT
+  try {
+    console.log('🔄 === INICIANDO SISTEMA DE ROTACIÓN AUTOMÁTICA ===');
+    
+    // Llamar al endpoint de rotación
+    const shopId = 'gid://shopify/Shop/{{ shop.id }}';
+    const shopIdEncoded = encodeURIComponent(shopId);
+    const endpoint = `https://essent-backen-production.up.railway.app/whatsapp/siguiente/${shopIdEncoded}`;
+    
+    console.log('📡 Endpoint de rotación:', endpoint);
+    console.log('🏪 Shop ID completo:', shopId);
+    
+    const response = await fetch(endpoint, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
+    
+    console.log('📡 Status de respuesta:', response.status);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('📊 Respuesta del endpoint de rotación:', data);
+    
+    // Extraer número del endpoint (múltiples propiedades posibles)
+    const numeroObtenido = data.numero || data.phone || data.telefono || null;
+    
+    if (numeroObtenido) {
+      console.log('📱 Número obtenido de la rotación:', numeroObtenido);
+      console.log('🎯 Fuente: ENDPOINT DE ROTACIÓN AUTOMÁTICA');
+      
+      // Construir URL con número del endpoint
+      const mensaje = encodeURIComponent('{{ message | escape }}');
+      const url = `https://wa.me/${numeroObtenido.replace(/\s/g, '')}?text=${mensaje}`;
+      
+      console.log('🔗 URL final con rotación:', url);
+      console.log('🚀 Abriendo WhatsApp con ROTACIÓN AUTOMÁTICA');
+      console.log('📊 Información del propietario:', window.shopOwnerInfo);
+      
+      // Abrir WhatsApp
+      {% if block.settings.open_in_new_tab %}
+        window.open(url, '_blank');
+      {% else %}
+        window.location.href = url;
+      {% endif %}
+      
+      return;
+    } else {
+      throw new Error('No se encontró número en la respuesta del endpoint');
+    }
+    
+  } catch (error) {
+    console.log('❌ Error en sistema de rotación:', error);
+    console.log('🔄 Usando fallback del metafield');
+    
+    // Fallback: usar número del metafield
+    const numeroFallback = '{{ phone_number }}';
+    const mensaje = encodeURIComponent('{{ message | escape }}');
+    const urlFallback = `https://wa.me/${numeroFallback}?text=${mensaje}`;
+    
+    console.log('🔗 URL fallback:', urlFallback);
+    console.log('🎯 Fuente: FALLBACK DEL METAFIELD');
+    console.log('📊 Información del propietario (fallback):', window.shopOwnerInfo);
+    
+    // Abrir WhatsApp con fallback
+    {% if block.settings.open_in_new_tab %}
+      window.open(urlFallback, '_blank');
+    {% else %}
+      window.location.href = urlFallback;
+    {% endif %}
+  }
+}
+</script>
+
+{% comment %} Definir estilos según el tipo de botón seleccionado {% endcomment %}
+{% case button_style %}
+  {% when 'style1' %}
+    {% assign widget_style = 'border-radius: 50%; width: 60px; height: 60px; padding: 0; justify-content: center;' %}
+    {% assign widget_bg = button_color %}
+  {% when 'style2' %}
+    {% assign widget_style = 'border-radius: 50%; width: 60px; height: 60px; padding: 0; justify-content: center; border: 3px solid ' | append: button_color | append: '; background-color: white;' %}
+    {% assign widget_bg = 'white' %}
+  {% when 'style3' %}
+    {% assign widget_style = 'border-radius: 50%; width: 60px; height: 60px; padding: 0; justify-content: center; border: 3px solid ' | append: button_color | append: '; background-color: white;' %}
+    {% assign widget_bg = 'white' %}
+  {% when 'style4' %}
+    {% assign widget_style = 'border-radius: 16px; padding: 12px 16px; background-color: white; border: 2px solid ' | append: button_color | append: ';' %}
+    {% assign widget_bg = 'white' %}
+  {% when 'style5' %}
+    {% assign widget_style = 'border-radius: 20px; padding: 12px 16px; background-color: white; border: 2px solid ' | append: button_color | append: ';' %}
+    {% assign widget_bg = 'white' %}
+  {% else %}
+    {% assign widget_style = 'border-radius: 50px; padding: 15px 20px;' %}
+    {% assign widget_bg = button_color %}
+{% endcase %}
+
+{% comment %} Widget de WhatsApp con CONTROL DE HORARIOS REAL {% endcomment %}
+<div id="whatsapp-widget-{{ block.id }}" style="
+  position: fixed;
+  {% case position %}
+    {% when 'top-left' %}
+      top: 20px;
+      left: 20px;
+    {% when 'top-right' %}
+      top: 20px;
+      right: 20px;
+    {% when 'bottom-left' %}
+      bottom: 20px;
+      left: 20px;
+    {% when 'bottom-right' %}
+      bottom: 20px;
+      right: 20px;
+    {% else %}
+      bottom: 20px;
+      right: 20px;
+  {% endcase %}
+  z-index: 9999;
+  background-color: {{ widget_bg | default: button_color }};
+  {{ widget_style }}
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: {{ block.settings.font_size | default: 14 }}px;
+  color: {% if widget_bg == 'white' %}{{ button_color }}{% else %}white{% endif %};
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: {{ block.settings.opacity | default: 100 | divided_by: 100.0 }};
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+" onclick="abrirWhatsAppConRotacion()">
+
+  {% comment %} Contenido del botón según el estilo {% endcomment %}
+  {% case button_style %}
+  {% when 'style1' %}
+  {% if logo_url != blank %}
+    <img src="{{ logo_url }}" alt="WhatsApp" width="32" height="32" style="width: 32px; height: 32px; object-fit: contain;">
+      {% else %}
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <path d="M16 2C8.27 2 2 8.27 2 16C2 18.65 2.81 21.11 4.2 23.2L2 30L9.05 27.85C11.05 29.1 13.45 30 16 30C23.73 30 30 23.73 30 16C30 8.27 23.73 2 16 2Z" fill="white"/>
+          <path d="M21.2 19.9C20.9 19.75 19.4 19 19.1 18.9C18.8 18.8 18.6 18.75 18.4 19.05C18.2 19.35 17.65 19.9 17.45 20.1C17.25 20.3 17.05 20.35 16.75 20.2C16.45 20.05 15.45 19.7 14.25 18.65C13.3 17.85 12.65 16.85 12.45 16.55C12.25 16.25 12.43 16.05 12.58 15.9C12.71 15.77 12.88 15.55 13.03 15.35C13.18 15.15 13.23 15 13.28 14.8C13.33 14.6 13.31 14.42 13.23 14.27C13.15 14.12 12.65 12.62 12.45 12.02C12.25 11.45 12.05 11.52 11.87 11.51C11.7 11.5 11.52 11.5 11.34 11.5C11.16 11.5 10.86 11.57 10.56 11.87C10.26 12.17 9.5 12.82 9.5 14.32C9.5 15.82 10.6 17.27 10.75 17.45C10.9 17.63 12.65 20.57 15.45 21.65C16.12 21.95 16.64 22.12 17.05 22.25C17.72 22.47 18.33 22.44 18.81 22.37C19.34 22.29 20.52 21.7 20.78 21.05C21.04 20.4 21.04 19.85 20.96 19.72C20.88 19.59 20.7 19.51 20.4 19.36L21.2 19.9Z" fill="{{ button_color }}"/>
+        </svg>
+      {% endif %}
+      {% when 'style2' %}
+  {% if logo_url != blank %}
+    <img src="{{ logo_url }}" alt="WhatsApp" width="32" height="32" style="width: 32px; height: 32px; object-fit: contain;">
+      {% else %}
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <path d="M16 2C8.27 2 2 8.27 2 16C2 18.65 2.81 21.11 4.2 23.2L2 30L9.05 27.85C11.05 29.1 13.45 30 16 30C23.73 30 30 23.73 30 16C30 8.27 23.73 2 16 2Z" fill="{{ button_color }}"/>
+          <path d="M21.2 19.9C20.9 19.75 19.4 19 19.1 18.9C18.8 18.8 18.6 18.75 18.4 19.05C18.2 19.35 17.65 19.9 17.45 20.1C17.25 20.3 17.05 20.35 16.75 20.2C16.45 20.05 15.45 19.7 14.25 18.65C13.3 17.85 12.65 16.85 12.45 16.55C12.25 16.25 12.43 16.05 12.58 15.9C12.71 15.77 12.88 15.55 13.03 15.35C13.18 15.15 13.23 15 13.28 14.8C13.33 14.6 13.31 14.42 13.23 14.27C13.15 14.12 12.65 12.62 12.45 12.02C12.25 11.45 12.05 11.52 11.87 11.51C11.7 11.5 11.52 11.5 11.34 11.5C11.16 11.5 10.86 11.57 10.56 11.87C10.26 12.17 9.5 12.82 9.5 14.32C9.5 15.82 10.6 17.27 10.75 17.45C10.9 17.63 12.65 20.57 15.45 21.65C16.12 21.95 16.64 22.12 17.05 22.25C17.72 22.47 18.33 22.44 18.81 22.37C19.34 22.29 20.52 21.7 20.78 21.05C21.04 20.4 21.04 19.85 20.96 19.72C20.88 19.59 20.7 19.51 20.4 19.36L21.2 19.9Z" fill="white"/>
+        </svg>
+      {% endif %}
+    
+    {% else %}
+      {% comment %} Otros estilos {% endcomment %}
+      {% if logo_url != blank %}
+        <img src="{{ logo_url }}" alt="WhatsApp" style="width: 24px; height: 24px; object-fit: contain;">
+      {% else %}
+        <span style="font-size: {{ block.settings.font_size | default: 14 | plus: 10 }}px;">{{ icon }}</span>
+      {% endif %}
+      {% if block.settings.show_text %}
+        <span style="font-weight: bold;">{{ block.settings.button_text | default: 'WhatsApp' }}</span>
+      {% endif %}
+  {% endcase %}
+</div>
+
+<!-- Sistema de control de visibilidad y efectos -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const widget = document.getElementById('whatsapp-widget-{{ block.id }}');
+  
+  function updateWidgetVisibility() {
+    if (widget && isWidgetActiveNow()) {
+      widget.style.display = 'flex';
+      widget.style.opacity = '{{ block.settings.opacity | default: 100 | divided_by: 100.0 }}';
+      widget.style.cursor = 'pointer';
+      widget.style.pointerEvents = 'auto';
+    } else if (widget) {
+      widget.style.display = 'none';
+    }
+  }
+  
+  // Actualizar visibilidad inicial y periódicamente
+  updateWidgetVisibility();
+  setInterval(updateWidgetVisibility, 30000);
+  
+  // Verificar también cuando la página regresa del background
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+      setTimeout(updateWidgetVisibility, 1000);
+    }
+  });
+  
+  // Efectos hover
+  if (widget) {
+    widget.addEventListener('mouseenter', function() {
+      if (isWidgetActiveNow()) {
+        this.style.transform = 'scale({{ block.settings.hover_scale | default: 110 | divided_by: 100.0 }}) translateY(-2px)';
+        this.style.boxShadow = '0 12px 35px rgba(0,0,0,0.25)';
+      }
+    });
+
+    widget.addEventListener('mouseleave', function() {
+      this.style.transform = 'scale(1) translateY(0px)';
+      this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+    });
+    
+    // Animación de entrada
+    {% if block.settings.entrance_animation %}
+      widget.style.transform = 'scale(0) rotate(180deg)';
+      widget.style.opacity = '0';
+      
+      setTimeout(function() {
+        widget.style.transition = 'all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        widget.style.transform = 'scale(1) rotate(0deg)';
+        widget.style.opacity = '{{ block.settings.opacity | default: 100 | divided_by: 100.0 }}';
+      }, {{ block.settings.entrance_delay | default: 1000 }});
+    {% endif %}
+  }
+});
+</script>
+
+{% else %}
+
+{% comment %} Mensaje de configuración requerida {% endcomment %}
+<script>
+  console.log('❌ WhatsApp Widget requiere configuración del formulario');
+  console.log('Faltan datos:', {
+    phone_number: {{ phone_number | json }},
+    message: {{ message | json }},
+    enable_widget: {{ block.settings.enable_widget | json }}
+  });
+  
+  // Mostrar información del propietario aunque no esté configurado
+  console.log('ℹ️ Información del propietario disponible:', {
+    firstName: '{{ shop_owner_first_name }}',
+    lastName: '{{ shop_owner_last_name }}',
+    email: '{{ shop_owner_email }}',
+    phone: '{{ shop_owner_phone }}',
+    shopName: '{{ shop_name }}',
+    shopId: '{{ shop_id }}'
+  });
+</script>
+
+{% endif %}
+
+{% schema %}
+{
+  "name": "WhatsApp Widget",
+  "target": "body",
+  "settings": [
+    {
+      "type": "header",
+      "content": "📱 Configuración Principal"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_widget",
+      "label": "Activar Widget de WhatsApp",
+      "default": true,
+      "info": "Habilita o deshabilita el widget en toda la tienda"
+    },
+    {
+      "type": "paragraph",
+      "content": "⚠️ IMPORTANTE: Debes configurar el widget desde la app primero. El widget se ocultará automáticamente fuera de los horarios configurados."
+    },
+    {
+      "type": "header",
+      "content": "🎨 Personalización Visual"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_text",
+      "label": "Mostrar texto en botones style4 y style5",
+      "default": true,
+      "info": "Solo aplica para estilos de chat (style4 y style5)"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Texto del botón",
+      "default": "Chat",
+      "info": "Solo se muestra en style4 y style5 si está activado"
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "min": 10,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Tamaño de fuente",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "opacity",
+      "min": 50,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Opacidad",
+      "default": 100
+    },
+    {
+      "type": "header",
+      "content": "✨ Efectos y Animaciones"
+    },
+    {
+      "type": "range",
+      "id": "hover_scale",
+      "min": 100,
+      "max": 150,
+      "step": 5,
+      "unit": "%",
+      "label": "Escala al hacer hover",
+      "default": 110,
+      "info": "100% = sin efecto, 150% = máximo zoom"
+    },
+    {
+      "type": "checkbox",
+      "id": "entrance_animation",
+      "label": "Activar animación de entrada",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "entrance_delay",
+      "min": 0,
+      "max": 5000,
+      "step": 500,
+      "unit": "ms",
+      "label": "Retraso de animación",
+      "default": 1000,
+      "info": "Solo aplica si la animación está activada"
+    },
+    {
+      "type": "header",
+      "content": "🔗 Comportamiento"
+    },
+    {
+      "type": "checkbox",
+      "id": "open_in_new_tab",
+      "label": "Abrir WhatsApp en nueva pestaña",
+      "default": true,
+      "info": "Si está desactivado, redirige en la misma pestaña"
+    }
+  ]
+}
+{% endschema %}

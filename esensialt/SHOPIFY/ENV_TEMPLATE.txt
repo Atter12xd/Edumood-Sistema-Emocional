@@ -1,0 +1,73 @@
+# ============================================
+# CONFIGURACIÓN DE ESSENTIAL WHATSAPP WIDGET
+# Copia este archivo a .env en la raíz del proyecto
+# ============================================
+
+# --------------------------------------------
+# SHOPIFY CONFIGURATION
+# --------------------------------------------
+SHOPIFY_API_KEY=b79e2fb8bcb7a5671f55e60712f610c2
+SHOPIFY_API_SECRET=3212bded3b17e7e692c98cb449d4accd
+SHOPIFY_APP_URL=http://localhost:3000
+SCOPES=read_products,write_products,read_orders,write_orders
+
+# --------------------------------------------
+# DATABASE CONFIGURATION (Prisma)
+# --------------------------------------------
+DATABASE_URL=postgresql://user:password@host:5432/database_name
+
+# --------------------------------------------
+# BACKEND RAILWAY CONFIGURATION
+# --------------------------------------------
+BACKEND_URL=https://essent-backen-production.up.railway.app
+
+# --------------------------------------------
+# CULQI PAYMENT GATEWAY (Test Environment)
+# --------------------------------------------
+# Public Key (usado en FRONTEND - puede ser visible)
+CULQI_PUBLIC_KEY=pk_test_dkeS17NBw8B1srCt
+
+# Secret Key (usado en BACKEND - NUNCA exponer en frontend)
+CULQI_SECRET_KEY=sk_test_367uAvKKpKk9ChQs
+
+# Environment: 'test' | 'production'
+CULQI_ENV=test
+
+# --------------------------------------------
+# CULQI PRODUCTION (cuando estés listo para prod)
+# --------------------------------------------
+# CULQI_PUBLIC_KEY=pk_live_your_production_key
+# CULQI_SECRET_KEY=sk_live_your_production_secret
+# CULQI_ENV=production
+
+# --------------------------------------------
+# APPLICATION CONFIGURATION
+# --------------------------------------------
+NODE_ENV=development
+LOG_LEVEL=info
+
+# Puerto para servidor local
+PORT=3000
+
+# --------------------------------------------
+# SECURITY
+# --------------------------------------------
+# SESSION_SECRET=your_random_session_secret_here
+
+# --------------------------------------------
+# TESTING
+# --------------------------------------------
+# TEST_MODE=true
+# TEST_SHOP=your-test-store.myshopify.com
+
+# --------------------------------------------
+# NOTAS IMPORTANTES:
+# --------------------------------------------
+# 1. Copia este archivo a .env y llena los valores reales
+# 2. NUNCA commits el archivo .env al repositorio
+# 3. Las API Keys de Culqi arriba son de TEST (modo sandbox)
+# 4. Cambia a producción solo cuando estés 100% listo
+# 5. Para Railway/Vercel, configura estas variables en su dashboard
+
+
+

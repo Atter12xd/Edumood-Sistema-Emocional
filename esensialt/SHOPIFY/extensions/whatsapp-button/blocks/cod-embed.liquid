@@ -1,0 +1,269 @@
+{% comment %}
+  App Embed: COD Form
+  SOLO estilos desde Railway - SIN FALLBACK
+{% endcomment %}
+
+{% render 'cod-modal' %}
+
+<script>
+  window.COD_SHOP_ID = 'gid://shopify/Shop/{{ shop.id }}';
+</script>
+
+{% raw %}
+<style>
+/* Solo ocultar competidores */
+.shopify-payment-button button { display: none !important; }
+button[style*="background: black"]:not(#codDynamicButton) { display: none !important; }
+
+/* Animaciones del botón */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes flash {
+  0%, 50%, 100% { opacity: 1; }
+  25%, 75% { opacity: 0.5; }
+}
+
+/* Clase para aplicar animaciones */
+.cod-btn-shake { animation: shake 0.5s ease-in-out infinite; }
+.cod-btn-pulse { animation: pulse 1s ease-in-out infinite; }
+.cod-btn-bounce { animation: bounce 1s ease-in-out infinite; }
+.cod-btn-flash { animation: flash 1.5s ease-in-out infinite; }
+</style>
+
+<script>
+(function() {
+  console.log('🚀 COD Embed inicializado');
+  
+  const RAILWAY_API_URL = 'https://essent-backen-production.up.railway.app/cod-forms';
+  const SHOP_ID = window.COD_SHOP_ID || 'gid://shopify/Shop/69894897821';
+  
+  async function loadButtonConfig() {
+    try {
+      console.log('📡 GET:', RAILWAY_API_URL + '?idusuarios=' + SHOP_ID);
+      
+      const response = await fetch(
+        RAILWAY_API_URL + '?idusuarios=' + encodeURIComponent(SHOP_ID),
+        {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+      
+      if (!response.ok) {
+        console.warn('⚠️ Error:', response.status);
+        return null;
+      }
+      
+      const result = await response.json();
+      console.log('📦 Result:', result);
+      
+      if (result.success && result.data && result.data.length > 0) {
+        const existingForm = result.data[0];
+        console.log('✅ Form encontrado:', existingForm.id);
+        
+        const loadedConfig = existingForm.form_config;
+        
+        // IMPORTANTE: Devolver config completa con product_image
+        return {
+          buttonConfig: loadedConfig.buttonConfig,
+          product_image: existingForm.product_image
+        };
+      }
+      
+      console.warn('⚠️ No hay forms en endpoint');
+      return null;
+      
+    } catch (error) {
+      console.error('❌ Error cargando endpoint:', error);
+      return null;
+    }
+  }
+  
+  function eliminarCompetidores() {
+    let count = 0;
+    document.querySelectorAll('button').forEach(function(btn) {
+      if (btn.id === 'codDynamicButton' || btn.getAttribute('name') === 'add') return;
+      
+      const text = (btn.textContent || '').toLowerCase();
+      if (text.includes('buy it now') || 
+          text.includes('comprar ahora') ||
+          (text.includes('pagar') && text.includes('contra') && text.includes('reembolso'))) {
+        btn.remove();
+        count++;
+      }
+    });
+    if (count > 0) console.log('💥 Eliminados:', count, 'botones');
+  }
+  
+  async function injectButton() {
+    if (!window.location.pathname.includes('/products/')) return;
+    if (document.getElementById('codDynamicButton')) return;
+    
+    console.log('✅ Página de producto detectada');
+    
+    const config = await loadButtonConfig();
+    
+    if (!config) {
+      console.warn('⚠️ No hay config desde endpoint - creando botón sin estilos personalizados');
+    } else {
+      console.log('✅ Config cargada desde Railway');
+    }
+    
+    const addBtn = document.querySelector('button[name="add"]');
+    if (!addBtn) {
+      console.warn('⚠️ No se encontró botón Add to Cart');
+      return;
+    }
+    
+    const btn = document.createElement('button');
+    btn.id = 'codDynamicButton';
+    btn.type = 'button';
+    btn.onclick = function() {
+      if (typeof openCODModal === 'function') openCODModal();
+    };
+    
+    const buttonConfig = config ? config.buttonConfig : null;
+    const text = buttonConfig && buttonConfig.text ? buttonConfig.text : 'Pagar Contra Reembolso';
+    
+    // USAR product_image como ícono si existe (SIN FALLBACK)
+    let iconHTML = '';
+    if (config && config.product_image) {
+      // Si es URL (empieza con http:// o https://), usar como imagen
+      if (config.product_image.startsWith('http://') || config.product_image.startsWith('https://')) {
+        iconHTML = '<img src="' + config.product_image + '" alt="" style="width: 24px; height: 24px; object-fit: contain;">';
+        console.log('🖼️ Usando URL como ícono:', config.product_image);
+      } else {
+        // Si NO es URL, es emoji o texto - usarlo directamente
+        iconHTML = '<span style="font-size: 24px;">' + config.product_image + '</span>';
+        console.log('🖼️ Usando emoji como ícono:', config.product_image);
+      }
+    } else {
+      console.warn('⚠️ Sin product_image - botón sin ícono');
+    }
+    
+    btn.innerHTML = (iconHTML ? iconHTML : '') + '<span>' + text + '</span>';
+    
+    btn.style.display = 'flex';
+    btn.style.alignItems = 'center';
+    btn.style.justifyContent = 'center';
+    btn.style.gap = '12px';
+    btn.style.cursor = 'pointer';
+    btn.style.width = '100%';
+    btn.style.padding = '16px 24px';
+    btn.style.marginTop = '12px';
+    btn.style.transition = 'all 0.3s';
+    btn.style.fontFamily = '-apple-system, BlinkMacSystemFont, sans-serif';
+    
+    if (buttonConfig) {
+      console.log('🎨 Aplicando estilos del endpoint:');
+      
+      if (buttonConfig.bgColor) {
+        btn.style.background = buttonConfig.bgColor;
+        console.log('   ✓ bgColor:', buttonConfig.bgColor);
+      }
+      
+      if (buttonConfig.textColor) {
+        btn.style.color = buttonConfig.textColor;
+        console.log('   ✓ textColor:', buttonConfig.textColor);
+      }
+      
+      if (buttonConfig.textSize) {
+        btn.style.fontSize = buttonConfig.textSize + 'px';
+        console.log('   ✓ textSize:', buttonConfig.textSize);
+      }
+      
+      if (buttonConfig.borderRadius) {
+        btn.style.borderRadius = buttonConfig.borderRadius + 'px';
+        console.log('   ✓ borderRadius:', buttonConfig.borderRadius);
+      }
+      
+      if (buttonConfig.borderWidth && buttonConfig.borderColor) {
+        btn.style.border = buttonConfig.borderWidth + 'px solid ' + buttonConfig.borderColor;
+        console.log('   ✓ border:', buttonConfig.borderWidth, buttonConfig.borderColor);
+      } else {
+        btn.style.border = 'none';
+      }
+      
+      if (buttonConfig.shadow) {
+        btn.style.boxShadow = '0 ' + buttonConfig.shadow + 'px ' + (buttonConfig.shadow * 2) + 'px rgba(0,0,0,0.3)';
+        console.log('   ✓ shadow:', buttonConfig.shadow);
+      }
+      
+      if (buttonConfig.fontWeight) {
+        btn.style.fontWeight = buttonConfig.fontWeight;
+        console.log('   ✓ fontWeight:', buttonConfig.fontWeight);
+      } else {
+        btn.style.fontWeight = '600';
+      }
+      
+      // Aplicar animación si existe
+      if (buttonConfig.animation && buttonConfig.animation !== 'Ninguna') {
+        const animationClass = 'cod-btn-' + buttonConfig.animation.toLowerCase();
+        btn.classList.add(animationClass);
+        console.log('   ✓ animation:', buttonConfig.animation);
+      }
+      
+      console.log('✅ Estilos aplicados desde Railway');
+    } else {
+      console.warn('⚠️ No hay config - botón creado sin estilos personalizados');
+      btn.style.border = 'none';
+      btn.style.fontWeight = '600';
+    }
+    
+    btn.addEventListener('mouseenter', function() {
+      this.style.opacity = '0.9';
+      this.style.transform = 'translateY(-2px)';
+    });
+    btn.addEventListener('mouseleave', function() {
+      this.style.opacity = '1';
+      this.style.transform = 'translateY(0)';
+    });
+    
+    const form = addBtn.closest('form');
+    if (form) {
+      form.parentNode.insertBefore(btn, form.nextSibling);
+    } else {
+      addBtn.parentNode.insertBefore(btn, addBtn.nextSibling);
+    }
+    
+    console.log('✅ Botón COD inyectado con estilos de Railway');
+  }
+  
+  async function init() {
+    await injectButton();
+    eliminarCompetidores();
+  }
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+  
+  setInterval(eliminarCompetidores, 100);
+  
+})();
+</script>
+{% endraw %}
+
+{% schema %}
+{
+  "name": "COD Form",
+  "target": "body",
+  "settings": []
+}
+{% endschema %}

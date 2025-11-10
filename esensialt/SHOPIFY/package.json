@@ -1,0 +1,138 @@
+{
+  "name": "essential",
+  "private": true,
+  "scripts": {
+    "build": "remix vite:build",
+    "dev": "shopify app dev",
+    "config:link": "shopify app config link",
+    "generate": "shopify app generate",
+    "deploy": "shopify app deploy",
+    "config:use": "shopify app config use",
+    "env": "shopify app env",
+    "start": "node server.js",
+    "start:prod": "cross-env NODE_ENV=production node server.js",
+    "railway:build": "npm run build",
+    "railway:start": "npm run start:prod",
+    "docker-start": "npm run setup && npm run start",
+    "setup": "prisma generate && prisma migrate deploy",
+    "lint": "eslint --cache --cache-location ./node_modules/.cache/eslint .",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest watch",
+    "shopify": "shopify",
+    "prisma": "prisma",
+    "graphql-codegen": "graphql-codegen",
+    "vite": "vite",
+    "typecheck": "tsc --noEmit",
+    "preview": "npm run build && npm run start"
+  },
+  "type": "module",
+  "engines": {
+    "node": "^18.20 || ^20.10 || >=21.0.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.2.1",
+    "@remix-run/dev": "^2.16.1",
+    "@remix-run/express": "^2.16.8",
+    "@remix-run/fs-routes": "^2.16.1",
+    "@remix-run/node": "^2.16.1",
+    "@remix-run/react": "^2.16.1",
+    "@remix-run/serve": "^2.16.1",
+    "@shopify/app-bridge-react": "^4.1.6",
+    "@shopify/polaris": "^12.0.0",
+    "@shopify/shopify-app-remix": "^3.7.0",
+    "@shopify/shopify-app-session-storage-prisma": "^6.0.0",
+    "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
+    "express": "^4.21.2",
+    "isbot": "^5.1.0",
+    "prisma": "^6.2.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "vite-tsconfig-paths": "^5.0.1"
+  },
+  "devDependencies": {
+    "@remix-run/eslint-config": "^2.16.1",
+    "@remix-run/route-config": "^2.16.1",
+    "@shopify/api-codegen-preset": "^1.1.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@types/cors": "^2.8.19",
+    "@types/eslint": "^9.6.1",
+    "@types/express": "^4.17.23",
+    "@types/node": "^22.2.0",
+    "@types/react": "^18.2.31",
+    "@types/react-dom": "^18.2.14",
+    "@vitejs/plugin-react": "^5.1.0",
+    "@vitest/ui": "^4.0.7",
+    "eslint": "^8.42.0",
+    "eslint-config-prettier": "^10.0.1",
+    "happy-dom": "^20.0.10",
+    "jsdom": "^27.1.0",
+    "prettier": "^3.2.4",
+    "typescript": "^5.2.2",
+    "vite": "^6.2.2",
+    "vitest": "^4.0.7"
+  },
+  "workspaces": [
+    "extensions/*"
+  ],
+  "trustedDependencies": [
+    "@shopify/plugin-cloudflare"
+  ],
+  "resolutions": {
+    "@graphql-tools/url-loader": "8.0.16",
+    "@graphql-codegen/client-preset": "4.7.0",
+    "@graphql-codegen/typescript-operations": "4.5.0",
+    "minimatch": "9.0.5"
+  },
+  "overrides": {
+    "@graphql-tools/url-loader": "8.0.16",
+    "@graphql-codegen/client-preset": "4.7.0",
+    "@graphql-codegen/typescript-operations": "4.5.0",
+    "minimatch": "9.0.5"
+  },
+  "author": "UBIL",
+  "config": {
+    "backendUrl": "https://essent-backen-production.up.railway.app",
+    "apiEndpoints": {
+      "whatsapp": {
+        "base": "https://essent-backen-production.up.railway.app/whatsapp",
+        "crear": "/crear",
+        "obtener": "/obtener",
+        "siguiente": "/siguiente",
+        "eliminar": "/eliminar",
+        "actualizar": "/actualizar"
+      }
+    },
+    "cors": {
+      "allowedOrigins": [
+        "https://essent-backen-production.up.railway.app",
+        "https://*.myshopify.com",
+        "https://*.shopifyapps.com",
+        "http://localhost:*",
+        "https://localhost:*"
+      ],
+      "methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "OPTIONS",
+        "PATCH"
+      ],
+      "headers": [
+        "Content-Type",
+        "Authorization",
+        "X-Shopify-Shop-Domain",
+        "X-Shopify-Access-Token",
+        "X-Requested-With",
+        "Accept",
+        "Origin"
+      ],
+      "credentials": true
+    }
+  }
+}

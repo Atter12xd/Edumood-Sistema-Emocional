@@ -1,0 +1,9 @@
+name = "whatsapp-button"
+uid = "491f1cb9-bcae-c4c8-f12e-eb1e7dfc47f248620751"
+type = "theme"
+
+[[app_embeds]]
+root = "./blocks/whatsapp_widget.liquid"
+
+[[app_embeds]]
+root = "./blocks/cod-embed.liquid"

@@ -1,0 +1,981 @@
+{% comment %}
+  Snippet: cod-modal.liquid
+  Modal COD - Diseño profesional con estilos desde Railway
+{% endcomment %}
+
+<div id="codFormModal" class="cod-modal-overlay" style="display: none;">
+  <div class="cod-modal-container" id="codModalContainer">
+    <button type="button" class="cod-close-btn" onclick="closeCODModal()" aria-label="Cerrar">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M15 5L5 15M5 5l10 10" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+
+    <div class="cod-modal-header">
+      <div class="cod-header-icon">💳</div>
+      <h2 class="cod-modal-title">Pago Contra Reembolso</h2>
+      <p class="cod-modal-subtitle">Completa tus datos para finalizar la compra</p>
+    </div>
+
+    <div class="cod-modal-content">
+      <!-- Product Summary -->
+      <div class="cod-product-card" id="codProductSummary">
+        <div class="cod-product-image" id="codProductImage">
+          <div class="cod-product-placeholder">📦</div>
+        </div>
+        <div class="cod-product-info">
+          <h3 class="cod-product-name" id="codProductName">{{ product.title | default: 'Producto' }}</h3>
+          <div class="cod-product-price" id="codProductPrice">{{ product.price | default: 0 | money }}</div>
+        </div>
+      </div>
+
+      <!-- Price Summary -->
+      <div class="cod-price-card">
+        <div class="cod-price-row">
+          <span class="cod-price-label">Subtotal</span>
+          <span class="cod-price-value" id="codSubtotal">{{ product.price | default: 0 | money }}</span>
+        </div>
+        <div class="cod-price-row">
+          <span class="cod-price-label">Envío</span>
+          <span class="cod-price-value cod-free" id="codShipping">Gratis</span>
+        </div>
+        <div class="cod-price-divider"></div>
+        <div class="cod-price-row cod-total-row">
+          <span class="cod-total-label">Total a pagar</span>
+          <span class="cod-total-value" id="codTotal">{{ product.price | default: 0 | money }}</span>
+        </div>
+      </div>
+
+      <!-- Form Section -->
+      <div class="cod-form-section">
+        <div class="cod-section-header">
+          <div class="cod-section-icon">📍</div>
+          <h3 class="cod-section-title">Información de envío</h3>
+        </div>
+
+        <form id="codCheckoutForm" class="cod-form" onsubmit="handleCODSubmit(event)">
+          <div class="cod-form-grid">
+            <div class="cod-input-group">
+              <label class="cod-input-label">
+                <span class="cod-label-icon">👤</span>
+                <span class="cod-label-text">Nombre</span>
+              </label>
+              <input type="text" name="firstName" placeholder="Ingresa tu nombre" required class="cod-input">
+            </div>
+
+            <div class="cod-input-group">
+              <label class="cod-input-label">
+                <span class="cod-label-icon">👤</span>
+                <span class="cod-label-text">Apellido</span>
+              </label>
+              <input type="text" name="lastName" placeholder="Ingresa tu apellido" required class="cod-input">
+            </div>
+
+            <div class="cod-input-group">
+              <label class="cod-input-label">
+                <span class="cod-label-icon">📱</span>
+                <span class="cod-label-text">Teléfono</span>
+              </label>
+              <input type="tel" name="phone" placeholder="+51 999 999 999" required class="cod-input">
+            </div>
+
+            <div class="cod-input-group">
+              <label class="cod-input-label">
+                <span class="cod-label-icon">📧</span>
+                <span class="cod-label-text">Email</span>
+              </label>
+              <input type="email" name="email" placeholder="tu@email.com" required class="cod-input">
+            </div>
+
+            <div class="cod-input-group cod-full-width">
+              <label class="cod-input-label">
+                <span class="cod-label-icon">📍</span>
+                <span class="cod-label-text">Dirección</span>
+              </label>
+              <input type="text" name="address" placeholder="Calle, número, interior" required class="cod-input">
+            </div>
+
+            <div class="cod-input-group">
+              <label class="cod-input-label">
+                <span class="cod-label-icon">🏙️</span>
+                <span class="cod-label-text">Ciudad</span>
+              </label>
+              <input type="text" name="city" placeholder="Tu ciudad" required class="cod-input">
+            </div>
+
+            <div class="cod-input-group">
+              <label class="cod-input-label">
+                <span class="cod-label-icon">📌</span>
+                <span class="cod-label-text">Provincia</span>
+              </label>
+              <input type="text" name="province" placeholder="Tu provincia" required class="cod-input">
+            </div>
+
+            <div class="cod-input-group">
+              <label class="cod-input-label">
+                <span class="cod-label-icon">✉️</span>
+                <span class="cod-label-text">Código Postal</span>
+              </label>
+              <input type="text" name="postalCode" placeholder="00000" required class="cod-input">
+            </div>
+          </div>
+
+          <div class="cod-terms-wrapper">
+            <label class="cod-checkbox-container">
+              <input type="checkbox" name="terms" required class="cod-checkbox">
+              <span class="cod-checkbox-custom"></span>
+              <span class="cod-checkbox-text">Acepto los <a href="#" class="cod-link">términos y condiciones</a></span>
+            </label>
+          </div>
+
+          <button type="submit" class="cod-submit-btn" id="codSubmitBtn">
+            <span class="cod-btn-content">
+              <span id="codBtnText">REALIZAR PEDIDO</span>
+              <svg class="cod-btn-arrow" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M7.5 15l5-5-5-5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span id="codBtnLoader" class="cod-loader" style="display: none;">
+              <svg class="cod-spinner" width="20" height="20" viewBox="0 0 20 20">
+                <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2" fill="none" opacity="0.25"/>
+                <path d="M10 2a8 8 0 018 8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+              </svg>
+            </span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="cod-modal-footer">
+      <div class="cod-security-badge">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 0L2 3v5c0 3.5 2.5 6.5 6 7 3.5-.5 6-3.5 6-7V3L8 0z"/>
+        </svg>
+        <span>Pago seguro y protegido</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% raw %}
+<style>
+/* ============================================
+   MODAL PROFESIONAL - SOLO LAYOUT/ESTRUCTURA
+   Colores desde Railway endpoint
+   ============================================ */
+
+.cod-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.5) 100%);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  padding: 20px;
+  animation: codFadeIn 0.3s ease;
+}
+
+@keyframes codFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.cod-modal-container {
+  background: white;
+  border-radius: 24px;
+  max-width: 520px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: codSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+@keyframes codSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.cod-close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.cod-close-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.9);
+  transform: rotate(90deg);
+}
+
+/* Header */
+.cod-modal-header {
+  text-align: center;
+  padding: 48px 32px 32px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.02) 0%, transparent 100%);
+}
+
+.cod-header-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  animation: codBounce 0.6s ease;
+}
+
+@keyframes codBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.cod-modal-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: #1a1a1a;
+  letter-spacing: -0.5px;
+}
+
+.cod-modal-subtitle {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.6);
+  margin: 0;
+  font-weight: 400;
+}
+
+/* Content */
+.cod-modal-content {
+  padding: 0 32px 32px;
+}
+
+/* Product Card */
+.cod-product-card {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease;
+}
+
+.cod-product-card:hover {
+  transform: translateY(-2px);
+}
+
+.cod-product-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.cod-product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cod-product-placeholder {
+  font-size: 36px;
+}
+
+.cod-product-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+
+.cod-product-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.cod-product-price {
+  font-size: 24px;
+  font-weight: 700;
+  color: #059669;
+  margin: 0;
+}
+
+/* Price Card */
+.cod-price-card {
+  padding: 20px;
+  background: white;
+  border: 2px solid #f0f0f0;
+  border-radius: 16px;
+  margin-bottom: 32px;
+}
+
+.cod-price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.cod-price-row:last-child {
+  margin-bottom: 0;
+}
+
+.cod-price-label {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.6);
+  font-weight: 500;
+}
+
+.cod-price-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.cod-free {
+  color: #059669;
+  font-weight: 700;
+}
+
+.cod-price-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #e0e0e0, transparent);
+  margin: 16px 0;
+}
+
+.cod-total-row {
+  padding-top: 4px;
+}
+
+.cod-total-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.cod-total-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: #059669;
+}
+
+/* Form Section */
+.cod-form-section {
+  margin-bottom: 24px;
+}
+
+.cod-section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.cod-section-icon {
+  font-size: 24px;
+}
+
+.cod-section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+/* Form Grid */
+.cod-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.cod-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.cod-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cod-input-group.cod-full-width {
+  grid-column: 1 / -1;
+}
+
+.cod-input-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.cod-label-icon {
+  font-size: 16px;
+}
+
+.cod-label-text {
+  flex: 1;
+}
+
+.cod-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 15px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.cod-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  transform: translateY(-1px);
+}
+
+.cod-input::placeholder {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+/* Checkbox */
+.cod-terms-wrapper {
+  margin-top: 8px;
+}
+
+.cod-checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  position: relative;
+}
+
+.cod-checkbox {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.cod-checkbox-custom {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #d1d5db;
+  border-radius: 6px;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+}
+
+.cod-checkbox:checked + .cod-checkbox-custom {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.cod-checkbox:checked + .cod-checkbox-custom::after {
+  content: "✓";
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.cod-checkbox-text {
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.7);
+  line-height: 1.5;
+}
+
+.cod-link {
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.cod-link:hover {
+  text-decoration: underline;
+}
+
+/* Submit Button */
+.cod-submit-btn {
+  width: 100%;
+  padding: 18px 24px;
+  border: none;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 10px 25px -10px currentColor;
+  position: relative;
+  overflow: hidden;
+}
+
+.cod-submit-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.cod-submit-btn:hover::before {
+  left: 100%;
+}
+
+.cod-submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px -10px currentColor;
+}
+
+.cod-submit-btn:active {
+  transform: translateY(0);
+}
+
+.cod-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.cod-btn-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cod-btn-arrow {
+  transition: transform 0.3s ease;
+}
+
+.cod-submit-btn:hover .cod-btn-arrow {
+  transform: translateX(4px);
+}
+
+.cod-spinner {
+  animation: codSpin 0.8s linear infinite;
+}
+
+@keyframes codSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Footer */
+.cod-modal-footer {
+  padding: 20px 32px;
+  border-top: 1px solid #f0f0f0;
+  background: #fafafa;
+  border-radius: 0 0 24px 24px;
+}
+
+.cod-security-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.6);
+  font-weight: 500;
+}
+
+.cod-security-badge svg {
+  color: #10b981;
+}
+
+/* Scrollbar */
+.cod-modal-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.cod-modal-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.cod-modal-container::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 10px;
+}
+
+.cod-modal-container::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .cod-modal-container {
+    border-radius: 24px 24px 0 0;
+    max-height: 95vh;
+    margin-top: auto;
+  }
+  
+  .cod-form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .cod-modal-header {
+    padding: 40px 24px 24px;
+  }
+  
+  .cod-modal-content {
+    padding: 0 24px 24px;
+  }
+  
+  .cod-modal-footer {
+    padding: 16px 24px;
+  }
+}
+</style>
+{% endraw %}
+
+<script>
+  window.COD_SHOP_ID = 'gid://shopify/Shop/{{ shop.id }}';
+</script>
+
+{% raw %}
+<script>
+const RAILWAY_API_URL = 'https://essent-backen-production.up.railway.app/cod-forms';
+const SHOP_ID = window.COD_SHOP_ID || 'gid://shopify/Shop/69894897821';
+let codFormConfig = null;
+
+console.log('🚀 COD Modal Script Cargado');
+
+async function loadModalConfig() {
+  try {
+    console.log('📡 Cargando config para modal...');
+    
+    const response = await fetch(
+      RAILWAY_API_URL + '?idusuarios=' + encodeURIComponent(SHOP_ID),
+      {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
+    
+    if (!response.ok) {
+      console.warn('⚠️ Error:', response.status);
+      return null;
+    }
+    
+    const result = await response.json();
+    
+    if (result.success && result.data && result.data.length > 0) {
+      const existingForm = result.data[0];
+      const loadedConfig = existingForm.form_config;
+      loadedConfig.product_image = existingForm.product_image;
+      
+      console.log('✅ Config cargada:', loadedConfig);
+      console.log('🖼️ product_image:', existingForm.product_image);
+      
+      return loadedConfig;
+    }
+    
+    return null;
+    
+  } catch (error) {
+    console.error('❌ Error:', error);
+    return null;
+  }
+}
+
+function applyModalStyles(config) {
+  if (!config) {
+    console.warn('⚠️ No hay config');
+    return;
+  }
+  
+  console.log('🎨 Aplicando estilos desde Railway...');
+  
+  const modal = document.getElementById('codModalContainer');
+  const inputs = document.querySelectorAll('.cod-input');
+  const btn = document.getElementById('codSubmitBtn');
+  const btnText = document.getElementById('codBtnText');
+  const productImage = document.getElementById('codProductImage');
+  
+  // Product Image
+  if (config.product_image && productImage) {
+    console.log('🖼️ Aplicando product_image:', config.product_image);
+    
+    if (config.product_image.startsWith('http://') || config.product_image.startsWith('https://')) {
+      productImage.innerHTML = '<img src="' + config.product_image + '" alt="Producto">';
+      console.log('   ✓ URL aplicada');
+    } else {
+      productImage.innerHTML = '<div class="cod-product-placeholder" style="font-size: 36px;">' + config.product_image + '</div>';
+      console.log('   ✓ Emoji aplicado');
+    }
+  }
+  
+  // Form Style
+  if (config.formStyle && modal) {
+    const fs = config.formStyle;
+    if (fs.backgroundColor) modal.style.backgroundColor = fs.backgroundColor;
+    if (fs.borderRadius) modal.style.borderRadius = fs.borderRadius + 'px';
+    if (fs.borderWidth && fs.borderColor) modal.style.border = fs.borderWidth + 'px solid ' + fs.borderColor;
+    if (fs.shadow) modal.style.boxShadow = '0 ' + fs.shadow + 'px ' + (fs.shadow * 2) + 'px rgba(0,0,0,0.3)';
+  }
+  
+  // Block Colors
+  if (config.blockColors && inputs.length > 0) {
+    const bc = config.blockColors;
+    inputs.forEach(function(input) {
+      if (bc.textColor) input.style.color = bc.textColor;
+      if (bc.bgColor) input.style.backgroundColor = bc.bgColor;
+      if (bc.borderRadius) input.style.borderRadius = bc.borderRadius + 'px';
+      if (bc.borderWidth && bc.borderColor) {
+        input.style.borderWidth = bc.borderWidth + 'px';
+        input.style.borderColor = bc.borderColor;
+      }
+      if (bc.textSize) input.style.fontSize = bc.textSize + 'px';
+    });
+  }
+  
+  // Button Config (buscar en buttonConfig O blocks.submitButton)
+  if (config.buttonConfig && btn) {
+    const btc = config.buttonConfig;
+    if (btc.text && btnText) btnText.textContent = btc.text;
+    if (btc.bgColor) btn.style.background = btc.bgColor;
+    if (btc.textColor) btn.style.color = btc.textColor;
+    if (btc.textSize) btn.style.fontSize = btc.textSize + 'px';
+    if (btc.borderRadius) btn.style.borderRadius = btc.borderRadius + 'px';
+    if (btc.borderWidth && btc.borderColor) {
+      btn.style.borderWidth = btc.borderWidth + 'px';
+      btn.style.borderStyle = 'solid';
+      btn.style.borderColor = btc.borderColor;
+    }
+    if (btc.shadow) btn.style.boxShadow = '0 ' + btc.shadow + 'px ' + (btc.shadow * 2) + 'px rgba(0,0,0,0.3)';
+    console.log('✅ Estilos aplicados desde buttonConfig');
+  } else if (config.blocks && config.blocks.submitButton && btn) {
+    // Si buttonConfig es null, buscar en blocks.submitButton
+    const sb = config.blocks.submitButton;
+    console.log('📝 Usando blocks.submitButton:', sb);
+    
+    if (sb.label && btnText) {
+      btnText.textContent = sb.label;
+      console.log('   ✓ label:', sb.label);
+    }
+    if (sb.bgColor) {
+      btn.style.background = sb.bgColor;
+      console.log('   ✓ bgColor:', sb.bgColor);
+    }
+    if (sb.textColor) {
+      btn.style.color = sb.textColor;
+      console.log('   ✓ textColor:', sb.textColor);
+    }
+    if (sb.textSize) {
+      btn.style.fontSize = sb.textSize + 'px';
+      console.log('   ✓ textSize:', sb.textSize);
+    }
+    if (sb.borderRadius) {
+      btn.style.borderRadius = sb.borderRadius + 'px';
+      console.log('   ✓ borderRadius:', sb.borderRadius);
+    }
+    if (sb.borderWidth && sb.borderColor) {
+      btn.style.borderWidth = sb.borderWidth + 'px';
+      btn.style.borderStyle = 'solid';
+      btn.style.borderColor = sb.borderColor;
+      console.log('   ✓ border:', sb.borderWidth, sb.borderColor);
+    }
+    console.log('✅ Estilos aplicados desde blocks.submitButton');
+  }
+  
+  console.log('✅ Estilos aplicados');
+}
+
+async function openCODModal() {
+  console.log('🚀 Abriendo modal...');
+  const modal = document.getElementById('codFormModal');
+  
+  if (!modal) {
+    console.error('❌ Modal no encontrado');
+    return;
+  }
+  
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  
+  if (!codFormConfig) {
+    codFormConfig = await loadModalConfig();
+    applyModalStyles(codFormConfig);
+  }
+}
+
+function closeCODModal() {
+  const modal = document.getElementById('codFormModal');
+  if (modal) {
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+  }
+}
+
+async function handleCODSubmit(event) {
+  event.preventDefault();
+  
+  const btn = document.getElementById('codSubmitBtn');
+  const btnText = document.getElementById('codBtnText');
+  const btnLoader = document.getElementById('codBtnLoader');
+  const btnArrow = btn.querySelector('.cod-btn-arrow');
+  
+  btn.disabled = true;
+  btnText.style.display = 'none';
+  if (btnArrow) btnArrow.style.display = 'none';
+  btnLoader.style.display = 'inline-block';
+  
+  try {
+    const formData = new FormData(event.target);
+    const data = {};
+    formData.forEach(function(value, key) {
+      data[key] = value;
+    });
+    
+    console.log('📦 Datos:', data);
+    
+    await new Promise(function(resolve) {
+      setTimeout(resolve, 2000);
+    });
+    
+    alert('✅ ¡Pedido realizado exitosamente!');
+    closeCODModal();
+    event.target.reset();
+    
+  } catch (error) {
+    console.error('❌ Error:', error);
+    alert('❌ Error al procesar el pedido');
+  } finally {
+    btn.disabled = false;
+    btnText.style.display = 'inline';
+    if (btnArrow) btnArrow.style.display = 'inline';
+    btnLoader.style.display = 'none';
+  }
+}
+
+document.addEventListener('click', function(e) {
+  if (e.target.id === 'codFormModal') {
+    closeCODModal();
+  }
+});
+</script>
+
+<script>
+(function() {
+  console.log('🔥 Sistema de eliminación activado');
+  
+  function destruirBotonesNegros() {
+    let destruidos = 0;
+    
+    document.querySelectorAll('button').forEach(function(btn) {
+      if (btn.id === 'codDynamicButton' || 
+          btn.classList.contains('cod-payment-button') ||
+          btn.getAttribute('name') === 'add') {
+        return;
+      }
+      
+      const texto = (btn.textContent || '').toLowerCase().replace(/\s+/g, ' ').trim();
+      
+      if (texto.includes('buy it now') ||
+          texto.includes('buy now') ||
+          texto.includes('comprar ahora') ||
+          (texto.includes('pagar') && texto.includes('contra') && texto.includes('reembolso'))) {
+        btn.remove();
+        destruidos++;
+        return;
+      }
+      
+      const bg = window.getComputedStyle(btn).backgroundColor;
+      if ((bg.includes('0, 0, 0') || bg === 'black') && texto.includes('pagar')) {
+        btn.remove();
+        destruidos++;
+      }
+    });
+    
+    document.querySelectorAll('[class*="releasit"], [class*="Releasit"]').forEach(function(el) {
+      if (el.tagName === 'BUTTON' && el.id !== 'codDynamicButton') {
+        el.remove();
+        destruidos++;
+      }
+    });
+    
+    document.querySelectorAll('.shopify-payment-button button').forEach(function(btn) {
+      if (btn.id !== 'codDynamicButton') {
+        btn.remove();
+        destruidos++;
+      }
+    });
+    
+    if (destruidos > 0) {
+      console.log('💥 Eliminados:', destruidos, 'botones');
+    }
+  }
+  
+  destruirBotonesNegros();
+  
+  let contador = 0;
+  const ultraRapido = setInterval(function() {
+    destruirBotonesNegros();
+    contador++;
+    if (contador >= 1000) {
+      clearInterval(ultraRapido);
+      setInterval(destruirBotonesNegros, 500);
+    }
+  }, 10);
+  
+  new MutationObserver(function() {
+    setTimeout(destruirBotonesNegros, 5);
+  }).observe(document.body, {
+    childList: true,
+    subtree: true,
+    attributes: true
+  });
+  
+  console.log('🛡️ Protección activa');
+})();
+</script>
+{% endraw %}

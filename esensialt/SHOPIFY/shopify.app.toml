@@ -1,0 +1,37 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "b79e2fb8bcb7a5671f55e60712f610c2"
+name = "Essential_v1"
+application_url = "https://shopify-production-2168.up.railway.app"
+embedded = true
+handle = "essential-v1"
+
+[build]
+automatically_update_urls_on_dev = true
+
+[webhooks]
+api_version = "2025-04"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/scopes_update" ]
+  uri = "https://essential-production.up.railway.app/webhooks/app/scopes_update"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "https://essential-production.up.railway.app/webhooks/app/uninstalled"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_customers,write_customers,read_orders,write_orders,read_products,write_products"
+optional_scopes = [ ]
+use_legacy_install_flow = true
+
+[auth]
+redirect_urls = [
+  "https://shopify-production-2168.up.railway.app/auth/callback",
+  "https://shopify-production-2168.up.railway.app/auth/shopify/callback",
+  "https://shopify-production-2168.up.railway.app/api/auth/callback"
+]
+
+[pos]
+embedded = true
