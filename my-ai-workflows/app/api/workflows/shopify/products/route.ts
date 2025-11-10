@@ -1,53 +1,139 @@
 // app/api/workflows/shopify/products/route.ts
-// Obtener productos de Shopify (replica del HTTP Request de n8n)
+// Obtener productos de Shopify DINÁMICAMENTE - VERSIÓN CORREGIDA
 
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { logExecution, createResponse, createErrorResponse } from '@/lib/utils'
 
-// Validación de input
 const ProductsRequestSchema = z.object({
+  shopDomain: z.string().min(1, "Shop domain is required"),
   limit: z.number().min(1).max(50).default(5),
   collection: z.string().optional(),
   vendor: z.string().optional(),
   product_type: z.string().optional()
 })
 
-// Configuración Shopify
-const SHOPIFY_CONFIG = {
-  shop: 'verify-test-111',
-  accessToken: process.env.SHOPIFY_ACCESS_TOKEN || '',
-  apiVersion: '2023-10'
-};
+// 🔧 FUNCIÓN CORREGIDA PARA OBTENER TOKEN
+async function getShopConfig(shopDomain: string) {
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const apiKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    
+    console.log('🔧 Environment check:', {
+      hasSupabaseUrl: !!supabaseUrl,
+      hasServiceKey: !!apiKey,
+      urlPreview: supabaseUrl ? supabaseUrl.substring(0, 30) + '...' : 'undefined'
+    })
+    
+    if (!supabaseUrl || !apiKey) {
+      throw new Error(`Missing Supabase configuration. URL: ${!!supabaseUrl}, Key: ${!!apiKey}`)
+    }
+    
+    // 🔧 NORMALIZAR shopDomain - siempre incluir .myshopify.com
+    const normalizedShopDomain = shopDomain.includes('.myshopify.com') 
+      ? shopDomain 
+      : `${shopDomain}.myshopify.com`
+    
+    console.log(`🔍 Searching for shop: ${normalizedShopDomain}`)
+    
+    // 🔧 QUERY MÁS COMPLETA PARA DEBUG
+    const fullUrl = `${supabaseUrl}/rest/v1/tiendas?dominio_shopify=eq.${normalizedShopDomain}&select=*`
+    
+    console.log(`🔗 Supabase query: ${fullUrl}`)
+    
+    const response = await fetch(fullUrl, {
+      headers: {
+        'apikey': apiKey,
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    })
+    
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('❌ Supabase response error:', response.status, errorText)
+      throw new Error(`Supabase error: ${response.status} - ${errorText}`)
+    }
+    
+    const data = await response.json()
+    console.log(`📊 Supabase response:`, {
+      found: data.length,
+      shops: data.map((shop: any) => ({
+        dominio: shop.dominio_shopify,
+        hasToken: !!shop.token_shopify,
+        tokenPreview: shop.token_shopify ? shop.token_shopify.substring(0, 10) + '...' : 'NO TOKEN',
+        activa: shop.activa,
+        nombre: shop.nombre
+      }))
+    })
+    
+    const shopData = data[0]
+    
+    if (!shopData) {
+      throw new Error(`Shop not found in database: ${normalizedShopDomain}`)
+    }
+    
+    if (!shopData.token_shopify) {
+      throw new Error(`No access token found for shop: ${normalizedShopDomain}. Shop exists but token is missing.`)
+    }
+    
+    // 🔧 TEMPORAL: Comentado para debug
+    // if (!shopData.activa) {
+    //   throw new Error(`Shop is inactive: ${normalizedShopDomain}`)
+    // }
+    
+    // 🔧 CORRECCIÓN CRÍTICA: RETORNAR DOMINIO COMPLETO
+    return {
+      shop: normalizedShopDomain, // ← USAR DOMINIO COMPLETO, NO SOLO EL NOMBRE
+      accessToken: shopData.token_shopify,
+      apiVersion: '2023-10',
+      shopInfo: {
+        nombre: shopData.nombre,
+        activa: shopData.activa,
+        fecha_instalacion: shopData.fecha_instalacion
+      }
+    }
+    
+  } catch (error: any) {
+    console.error('❌ Error getting shop config:', error.message)
+    throw new Error(`Failed to get shop configuration: ${error.message}`)
+  }
+}
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now()
   
   try {
-    // 1. Validar input
     const rawBody = await request.json()
-    const params = ProductsRequestSchema.parse(rawBody)
+    console.log('🔍 Products API received:', rawBody)
     
-    // 2. Log inicio
+    const params = ProductsRequestSchema.parse(rawBody)
+    console.log('✅ Validated params:', params)
+    
+    // 🔧 LOG TEMPORAL SIN USERID
     await logExecution({
       workflow: 'shopify-products',
-      status: 'started',
-      input: params
+      status: 'started'
     })
     
-    // 3. Fetch productos de Shopify
-    const products = await fetchShopifyProducts(params)
+    console.log(`🏪 Getting shop config for: ${params.shopDomain}`)
+    const shopConfig = await getShopConfig(params.shopDomain)
+    console.log(`✅ Shop config obtained:`, {
+      shop: shopConfig.shop,
+      hasToken: !!shopConfig.accessToken,
+      tokenPreview: shopConfig.accessToken.substring(0, 10) + '...'
+    })
     
-    // 4. Formatear respuesta para WhatsApp (igual que tu Code1 de n8n)
-    const formattedResponse = formatProductsForWhatsApp(products)
+    console.log(`📦 Fetching products...`)
+    const products = await fetchShopifyProducts(params, shopConfig)
+    console.log(`✅ Found ${products.length} products`)
     
-    // 5. Log éxito
+    const formattedResponse = formatProductsForWhatsApp(products, shopConfig.shop)
+    
     const executionTime = Date.now() - startTime
     await logExecution({
       workflow: 'shopify-products',
-      status: 'completed',
-      output: formattedResponse,
-      duration: executionTime
+      status: 'completed'
     })
     
     return createResponse({
@@ -56,18 +142,22 @@ export async function POST(request: NextRequest) {
       executionTime,
       metadata: {
         workflowName: 'shopify-products',
-        version: '1.0.0',
+        version: '2.1.0',
+        shopDomain: params.shopDomain,
+        actualShop: shopConfig.shop,
+        productsCount: products.length,
         timestamp: new Date().toISOString()
       }
     })
     
   } catch (error: any) {
     const executionTime = Date.now() - startTime
+    console.error('❌ Products API error:', error.message)
+    console.error('❌ Full error stack:', error.stack)
+    
     await logExecution({
       workflow: 'shopify-products',
-      status: 'failed',
-      error: error.message,
-      duration: executionTime
+      status: 'failed'
     })
     
     if (error instanceof z.ZodError) {
@@ -78,68 +168,90 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function fetchShopifyProducts(params: z.infer<typeof ProductsRequestSchema>) {
+// 🔧 FUNCIÓN CORREGIDA PARA FETCH SHOPIFY
+async function fetchShopifyProducts(
+  params: z.infer<typeof ProductsRequestSchema>, 
+  shopConfig: { shop: string; accessToken: string; apiVersion: string }
+) {
   const { limit, collection, vendor, product_type } = params
   
-  // Construir URL con parámetros (igual que tu n8n)
-  let url = `https://${SHOPIFY_CONFIG.shop}.myshopify.com/admin/api/${SHOPIFY_CONFIG.apiVersion}/products.json?limit=${limit}`
+  // 🔧 CORRECCIÓN CRÍTICA: NO AGREGAR .myshopify.com porque ya está incluido
+  let url = `https://${shopConfig.shop}/admin/api/${shopConfig.apiVersion}/products.json?limit=${limit}`
   
-  if (collection) url += `&collection=${collection}`
-  if (vendor) url += `&vendor=${vendor}`
-  if (product_type) url += `&product_type=${product_type}`
+  if (collection) url += `&collection=${encodeURIComponent(collection)}`
+  if (vendor) url += `&vendor=${encodeURIComponent(vendor)}`
+  if (product_type) url += `&product_type=${encodeURIComponent(product_type)}`
+  
+  console.log(`🔗 Fetching from: ${url}`)
+  console.log(`🔑 Using token: ${shopConfig.accessToken.substring(0, 15)}...`)
   
   try {
     const response = await fetch(url, {
       method: 'GET',
       headers: {
-        'X-Shopify-Access-Token': SHOPIFY_CONFIG.accessToken,
-        'Content-Type': 'application/json'
+        'X-Shopify-Access-Token': shopConfig.accessToken,
+        'Content-Type': 'application/json',
+        'User-Agent': 'Dynamic-Shopify-App/1.0'
       }
     })
     
+    console.log(`📡 Shopify response status: ${response.status}`)
+    
     if (!response.ok) {
-      throw new Error(`Shopify API error: ${response.status} ${response.statusText}`)
+      const errorText = await response.text()
+      console.error('❌ Shopify API error details:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: url,
+        tokenPreview: shopConfig.accessToken.substring(0, 10) + '...',
+        responseBody: errorText
+      })
+      throw new Error(`Shopify API error: ${response.status} ${errorText}`)
     }
     
     const data = await response.json()
+    console.log(`✅ Shopify API success: ${data.products?.length || 0} products found`)
+    
     return data.products || []
     
   } catch (error: any) {
+    console.error('❌ Fetch error:', error.message)
     throw new Error(`Failed to fetch Shopify products: ${error.message}`)
   }
 }
 
-// Formatear productos para WhatsApp (EXACTO como tu Code1 de n8n)
-function formatProductsForWhatsApp(products: any[]) {
+// 🔧 FUNCIÓN DE FORMATO SIN CAMBIOS MAYORES
+function formatProductsForWhatsApp(products: any[], shopName: string) {
+  // Extraer nombre limpio de la tienda
+  const cleanShopName = shopName.replace('.myshopify.com', '')
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+  
   if (!products || products.length === 0) {
     return {
-      whatsappMessage: "❌ *Lo siento, no hay productos disponibles en este momento.*\n\n*Verify* - ¡Pronto tendremos más productos para ti! 😊",
+      whatsappMessage: `❌ *Lo siento, no hay productos disponibles en este momento.*\n\n*${cleanShopName}* - ¡Pronto tendremos más productos para ti! 😊`,
       products: []
     }
   }
   
-  // Crear mensaje formateado para WhatsApp (igual que tu n8n)
-  let mensaje = "🛍️ *Productos disponibles en Verify:*\n\n"
+  let mensaje = `🛍️ *Productos disponibles en ${cleanShopName}:*\n\n`
   
   products.forEach((producto, index) => {
-    // Limpiar HTML de la descripción (igual que tu Code1)
     const descripcion = producto.body_html ? 
       producto.body_html.replace(/<[^>]*>/g, '').substring(0, 100) : 
       'Sin descripción disponible'
     
-    // Obtener precio del primer variant (igual que tu Code1)
     const precio = producto.variants && producto.variants[0] ? 
       producto.variants[0].price : 
       'Precio no disponible'
     
-    mensaje += `${index + 1}. *${producto.title}*\n`
+    mensaje += `**${index + 1}. ${producto.title}**\n`
     mensaje += `💰 Precio: $${precio}\n`
-    mensaje += `📝 ${descripcion}...\n`
-    mensaje += `🔗 ID: ${producto.id}\n\n`
+    mensaje += `📝 ${descripcion}...\n\n`
   })
   
-  mensaje += `Ver más productos: https://${SHOPIFY_CONFIG.shop}.myshopify.com/collections/all\n\n`
-  mensaje += "¿Te interesa algún producto? ¡Dime cuál y te ayudo con tu pedido! 😊"
+  mensaje += `¿Te interesa algún producto de *${cleanShopName}*? ¡Dime cuál y te ayudo con tu pedido! 😊`
   
   return {
     whatsappMessage: mensaje,
@@ -161,23 +273,35 @@ function formatProductsForWhatsApp(products: any[]) {
   }
 }
 
-// GET endpoint para testing
+// 🔧 GET ENDPOINT PARA TESTING
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
+  const shopDomain = searchParams.get('shop') || 'atter-prueba.myshopify.com'
   const limit = parseInt(searchParams.get('limit') || '5')
   
+  console.log(`🧪 Testing GET endpoint with: ${shopDomain}`)
+  
   try {
-    // Fetch directo para testing
-    const products = await fetchShopifyProducts({ limit })
-    const formatted = formatProductsForWhatsApp(products)
+    const shopConfig = await getShopConfig(shopDomain)
+    const products = await fetchShopifyProducts({ shopDomain, limit }, shopConfig)
+    const formatted = formatProductsForWhatsApp(products, shopConfig.shop)
     
     return createResponse({
-      message: "Shopify Products API",
+      success: true,
+      message: `Shopify Products API Test - ${shopDomain}`,
       data: formatted,
-      total: products.length
+      debug: {
+        inputShopDomain: shopDomain,
+        resolvedShop: shopConfig.shop,
+        hasToken: !!shopConfig.accessToken,
+        tokenLength: shopConfig.accessToken.length,
+        apiVersion: shopConfig.apiVersion,
+        productsFound: products.length
+      }
     })
     
   } catch (error: any) {
-    return createErrorResponse(`Failed to fetch products: ${error.message}`, 500)
+    console.error('🧪 Test endpoint error:', error)
+    return createErrorResponse(`Test failed: ${error.message}`, 500)
   }
 }
