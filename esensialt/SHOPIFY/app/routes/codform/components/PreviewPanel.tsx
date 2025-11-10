@@ -1,7 +1,7 @@
 // components/PreviewPanel.tsx
 import React, { useEffect, useState } from 'react';
 import FormContent from './FormContent';
-import { FormData, FormStyle, Blocks, Product, BlockColors } from '../types/codform.types';
+import { FormData, FormStyle, Blocks, Product, BlockColors, FormErrors } from '../types/codform.types';
 import { codFormStyles } from '../styles/codform.styles';
 import { injectAnimationStyles, getAnimationStyle } from '../styles/codform.animations';
 import { getButtonIcon } from '../styles/codform.icons';
@@ -32,6 +32,7 @@ interface PreviewPanelProps {
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
   onSubmit: (e: React.FormEvent) => void;
   onShowModal: () => void;
+  formErrors: FormErrors;
 }
 
 const PreviewPanel: React.FC<PreviewPanelProps> = ({
@@ -45,7 +46,8 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
   buttonConfig,
   onInputChange,
   onSubmit,
-  onShowModal
+  onShowModal,
+  formErrors
 }) => {
   const [isMobile, setIsMobile] = useState(false);
 
@@ -121,6 +123,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
                   product={product}
                   blockOrder={blockOrder}
                   blockColors={blockColors}
+                  formErrors={formErrors}
                   onInputChange={onInputChange}
                   onSubmit={onSubmit}
                 />

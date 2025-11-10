@@ -86,3 +86,39 @@ export interface BlockColors {
   borderColor: string;
   shadow: number;
 }
+
+export interface ButtonConfig {
+  text: string;
+  subtitle: string;
+  animation: string;
+  icon: string;
+  position: string;
+  bgColor: string;
+  textColor: string;
+  textSize: number;
+  borderRadius: number;
+  borderWidth: number;
+  borderColor: string;
+  shadow: number;
+  enableMobile: boolean;
+}
+
+export interface Owner {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  shopName: string;
+  address: string;
+  city: string;
+  country: string;
+  shopId: string;
+}
+
+export interface CodFormLoaderData {
+  owner?: Owner;
+  shop: string;
+  error?: string;
+}
+
+export type FormErrors = Partial<Record<keyof FormData, string>>;

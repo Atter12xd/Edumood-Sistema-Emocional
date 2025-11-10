@@ -18,6 +18,14 @@
 
 ## 🔥 NUEVA FUNCIONALIDAD: COD FORM + CULQI
 
+### 📆 Avances Día 2 - Refactor Técnico
+
+- ✅ `codform.tsx` dividido: lógica extraída a `hooks/useCodFormState.ts` y `services/codform.api.ts`
+- ✅ Configuración central reutilizada (`app/config/app.config.ts`) para endpoints COD Form
+- ✅ Validaciones dinámicas con Zod (`validation/codform.validation.ts`) visibles en UI (mensajes por campo)
+- ✅ Suite de pruebas (`npm run test:run`) ampliada a 24 tests (incluye validaciones)
+- 🧱 Base lista para continuar con validaciones y mejoras de UI sin tocar lógica de API
+
 ### **¿Qué es?**
 Un formulario de **Cash on Delivery (COD)** moderno con integración de la pasarela de pagos **Culqi** (líder en Perú).
 

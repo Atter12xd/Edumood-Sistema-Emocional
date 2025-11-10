@@ -11,9 +11,10 @@
 ### **1. Sistema de Tests Automatizados**
 - ✅ Vitest como framework de testing (alternativa moderna a Jest)
 - ✅ @testing-library/react para testing de componentes
-- ✅ 20 tests funcionando correctamente
+- ✅ 24 tests funcionando correctamente
 - ✅ Coverage reports configurados
 - ✅ UI interactiva para debugging
+- ✅ Validaciones Zod activas en `hook` + `FormContent` con mensajes en UI
 
 ### **2. Configuración Centralizada**
 - ✅ Todas las configuraciones en `app/config/app.config.ts`
@@ -42,6 +43,13 @@ npm run test:watch
 npm run test:coverage
 ```
 
+### 🆕 Cambios Día 2
+
+- Lógica del formulario COD movida a `app/routes/codform/hooks/useCodFormState.ts`
+- Llamadas API centralizadas en `app/routes/codform/services/codform.api.ts`
+- Componentes existentes (`DesignPanel`, `PreviewPanel`, `FormContent`) no cambiaron su API pública
+- Todas las URLs ahora se construyen con `getBackendUrl` desde `app/config/app.config.ts`
+
 ---
 
 ## 📁 Estructura de Archivos
@@ -52,10 +60,16 @@ SHOPIFY/
 ├── tests/                     # Todos los tests aquí
 │   ├── setup.ts              # Setup global de tests
 │   ├── example.test.ts       # Tests de ejemplo
-│   └── config.test.ts        # Tests de configuración
+│   ├── config.test.ts        # Tests de configuración y helpers
+│   └── codform.validation.test.ts # Tests Zod + reglas del formulario COD
 ├── app/
 │   └── config/
 │       └── app.config.ts     # ⭐ Configuración centralizada
+│   └── routes/
+│       └── codform/
+│           ├── hooks/useCodFormState.ts   # ⭐ Estado y handlers extraídos
+│           ├── services/codform.api.ts    # ⭐ Integración con Railway
+│           └── codform.tsx                # Render principal usando el hook
 └── ENV_TEMPLATE.txt          # Template de variables de entorno
 ```
 
@@ -99,6 +113,36 @@ it('debe calcular comisión correctamente', () => {
 });
 ```
 
+### **Testear nuevos servicios (ejemplo básico)**
+
+```typescript
+import { describe, it, expect, vi } from 'vitest';
+import { upsertCodForm } from '~/routes/codform/services/codform.api';
+
+describe('Servicio COD Form', () => {
+  it('llama a fetch con la URL configurada', async () => {
+    const mockFetch = vi
+      .spyOn(global, 'fetch')
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ success: true, data: { id: '123' } }) } as any);
+
+    await upsertCodForm({
+      shopOwner: { shopId: '1', shopName: 'demo', firstName: '', lastName: '', email: '', phone: '', address: '', city: '', country: '' },
+      product: { name: 'demo', price: 10, currency: 'PEN', image: '' },
+      formType: 'popup',
+      formStyle: { textColor: '#000', textSize: 14, backgroundColor: '#fff', borderRadius: 8, borderWidth: 1, borderColor: '#000', shadow: 4, hideCloseButton: false, hideFieldLabels: false, enableRTL: false, enableFullScreen: false },
+      blocks: {} as any,
+      blockOrder: [],
+      blockColors: { textColor: '#000', textSize: 14, bgColor: '#fff', borderRadius: 8, borderWidth: 1, borderColor: '#000', shadow: 4 },
+      buttonConfig: null,
+      errorMessages: { required: '', invalid: '' },
+    });
+
+    expect(mockFetch).toHaveBeenCalled();
+    mockFetch.mockRestore();
+  });
+});
+```
+
 ---
 
 ## 📊 Cobertura de Tests Actual
@@ -107,7 +151,7 @@ it('debe calcular comisión correctamente', () => {
 |---------|-------|--------|
 | `example.test.ts` | 5 tests | ✅ Pasando |
 | `config.test.ts` | 15 tests | ✅ Pasando |
-| **TOTAL** | **20 tests** | **✅ 100%** |
+| **TOTAL** | **24 tests** | **✅ 100%** |
 
 ---
 
@@ -252,8 +296,14 @@ npm run test:coverage
 ---
 
 **✅ Tests configurados exitosamente el Día 1**  
-**📊 20 tests pasando**  
+**📊 24 tests pasando**  
 **🎯 Listo para continuar con Día 2-3**
+
+### **Plus para la demo:**
+- `npm run preview` abre la app en `http://localhost:3000`
+- Mostrar la barra superior de “Cambios no guardados”, guardar (mock API) y ver notificación
+- Abrir `hooks/useCodFormState.ts` para resaltar el refactor de Día 2
+- Ejecutar `npm run test:run` en vivo para evidenciar cobertura
 
 
 

@@ -1,6 +1,6 @@
 // components/FormContent.tsx
 import React, { useState, useEffect } from 'react';
-import { FormData, FormStyle, Blocks, Product, BlockColors } from '../types/codform.types';
+import { FormData, FormStyle, Blocks, Product, BlockColors, FormErrors } from '../types/codform.types';
 
 interface FormContentProps {
   formData: FormData;
@@ -9,6 +9,7 @@ interface FormContentProps {
   product: Product;
   blockOrder: string[];
   blockColors?: BlockColors;
+  formErrors?: FormErrors;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
   onSubmit: (e: React.FormEvent) => void;
 }
@@ -20,6 +21,7 @@ const FormContent: React.FC<FormContentProps> = ({
   product,
   blockOrder,
   blockColors,
+  formErrors,
   onInputChange,
   onSubmit
 }) => {
@@ -135,6 +137,11 @@ const FormContent: React.FC<FormContentProps> = ({
           <option value="standard">Envío estándar - Gratis</option>
           <option value="express">Envío express - {product.currency}5.00</option>
         </select>
+        {formErrors?.shippingMethod && (
+          <p style={{ color: '#ef4444', fontSize: isMobile ? '12px' : '13px', marginTop: '6px' }}>
+            {formErrors.shippingMethod}
+          </p>
+        )}
       </div>
     ) : <React.Fragment key="shippingRates" />,
 
@@ -198,6 +205,11 @@ const FormContent: React.FC<FormContentProps> = ({
             boxShadow: `0 ${globalColors.shadow}px ${globalColors.shadow * 2}px rgba(0, 0, 0, 0.1)`
           }}
         />
+        {formErrors?.discountCode && (
+          <p style={{ color: '#ef4444', fontSize: isMobile ? '12px' : '13px', marginTop: '6px' }}>
+            {formErrors.discountCode}
+          </p>
+        )}
       </div>
     ) : <React.Fragment key="discountCodes" />,
 
@@ -245,6 +257,11 @@ const FormContent: React.FC<FormContentProps> = ({
             boxShadow: `0 ${globalColors.shadow}px ${globalColors.shadow * 2}px rgba(0, 0, 0, 0.1)`
           }}
         />
+        {formErrors?.firstName && (
+          <p style={{ color: '#ef4444', fontSize: isMobile ? '12px' : '13px', marginTop: '6px' }}>
+            {formErrors.firstName}
+          </p>
+        )}
       </div>
     ) : <React.Fragment key="firstName" />,
 
@@ -279,6 +296,11 @@ const FormContent: React.FC<FormContentProps> = ({
             boxShadow: `0 ${globalColors.shadow}px ${globalColors.shadow * 2}px rgba(0, 0, 0, 0.1)`
           }}
         />
+        {formErrors?.lastName && (
+          <p style={{ color: '#ef4444', fontSize: isMobile ? '12px' : '13px', marginTop: '6px' }}>
+            {formErrors.lastName}
+          </p>
+        )}
       </div>
     ) : <React.Fragment key="lastName" />,
 
@@ -313,6 +335,11 @@ const FormContent: React.FC<FormContentProps> = ({
             boxShadow: `0 ${globalColors.shadow}px ${globalColors.shadow * 2}px rgba(0, 0, 0, 0.1)`
           }}
         />
+        {formErrors?.phone && (
+          <p style={{ color: '#ef4444', fontSize: isMobile ? '12px' : '13px', marginTop: '6px' }}>
+            {formErrors.phone}
+          </p>
+        )}
       </div>
     ) : <React.Fragment key="phone" />,
 
@@ -347,6 +374,11 @@ const FormContent: React.FC<FormContentProps> = ({
             boxShadow: `0 ${globalColors.shadow}px ${globalColors.shadow * 2}px rgba(0, 0, 0, 0.1)`
           }}
         />
+        {formErrors?.address && (
+          <p style={{ color: '#ef4444', fontSize: isMobile ? '12px' : '13px', marginTop: '6px' }}>
+            {formErrors.address}
+          </p>
+        )}
       </div>
     ) : <React.Fragment key="address" />,
 
@@ -379,6 +411,11 @@ const FormContent: React.FC<FormContentProps> = ({
             boxShadow: `0 ${globalColors.shadow}px ${globalColors.shadow * 2}px rgba(0, 0, 0, 0.1)`
           }}
         />
+        {formErrors?.address2 && (
+          <p style={{ color: '#ef4444', fontSize: isMobile ? '12px' : '13px', marginTop: '6px' }}>
+            {formErrors.address2}
+          </p>
+        )}
       </div>
     ) : <React.Fragment key="address2" />,
 
@@ -413,6 +450,11 @@ const FormContent: React.FC<FormContentProps> = ({
             boxShadow: `0 ${globalColors.shadow}px ${globalColors.shadow * 2}px rgba(0, 0, 0, 0.1)`
           }}
         />
+        {formErrors?.province && (
+          <p style={{ color: '#ef4444', fontSize: isMobile ? '12px' : '13px', marginTop: '6px' }}>
+            {formErrors.province}
+          </p>
+        )}
       </div>
     ) : <React.Fragment key="province" />,
 
@@ -447,6 +489,11 @@ const FormContent: React.FC<FormContentProps> = ({
             boxShadow: `0 ${globalColors.shadow}px ${globalColors.shadow * 2}px rgba(0, 0, 0, 0.1)`
           }}
         />
+        {formErrors?.city && (
+          <p style={{ color: '#ef4444', fontSize: isMobile ? '12px' : '13px', marginTop: '6px' }}>
+            {formErrors.city}
+          </p>
+        )}
       </div>
     ) : <React.Fragment key="city" />,
 
@@ -481,6 +528,11 @@ const FormContent: React.FC<FormContentProps> = ({
             boxShadow: `0 ${globalColors.shadow}px ${globalColors.shadow * 2}px rgba(0, 0, 0, 0.1)`
           }}
         />
+        {formErrors?.zipCode && (
+          <p style={{ color: '#ef4444', fontSize: isMobile ? '12px' : '13px', marginTop: '6px' }}>
+            {formErrors.zipCode}
+          </p>
+        )}
       </div>
     ) : <React.Fragment key="postalCode" />,
 
@@ -515,6 +567,11 @@ const FormContent: React.FC<FormContentProps> = ({
             boxShadow: `0 ${globalColors.shadow}px ${globalColors.shadow * 2}px rgba(0, 0, 0, 0.1)`
           }}
         />
+        {formErrors?.email && (
+          <p style={{ color: '#ef4444', fontSize: isMobile ? '12px' : '13px', marginTop: '6px' }}>
+            {formErrors.email}
+          </p>
+        )}
       </div>
     ) : <React.Fragment key="email" />,
 
@@ -548,6 +605,11 @@ const FormContent: React.FC<FormContentProps> = ({
             resize: 'vertical'
           }}
         />
+        {formErrors?.orderNote && (
+          <p style={{ color: '#ef4444', fontSize: isMobile ? '12px' : '13px', marginTop: '6px' }}>
+            {formErrors.orderNote}
+          </p>
+        )}
       </div>
       ) : <React.Fragment key="newsletter" />,
 
@@ -570,6 +632,11 @@ const FormContent: React.FC<FormContentProps> = ({
           {getBlockStyles('terms').label || 'Acepto nuestros términos y condiciones'}
           {getBlockStyles('terms').required && <span style={{color: '#ef4444'}}> *</span>}
         </label>
+        {formErrors?.terms && (
+          <p style={{ color: '#ef4444', fontSize: isMobile ? '12px' : '13px', marginTop: '6px' }}>
+            {formErrors.terms}
+          </p>
+        )}
       </div>
     ) : <React.Fragment key="terms" />,
 
