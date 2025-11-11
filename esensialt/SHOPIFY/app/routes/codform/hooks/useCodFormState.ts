@@ -25,6 +25,7 @@ import {
   blockFieldMap,
   validateCodFormData,
 } from "../validation/codform.validation";
+import clientLogger from "~/utils/logger.client";
 
 export interface UseCodFormStateResult {
   state: {
@@ -268,7 +269,10 @@ export function useCodFormState(
       setFormErrors({});
       setHasChanges(false);
     } catch (error) {
-      console.error("❌ Error al cargar formulario:", error);
+      clientLogger.error("[CODFORM] Error al cargar formulario", {
+        error,
+        shopId: propietario?.shopId,
+      });
       setSaveStatus({
         type: "error",
         message: "Error al cargar formulario existente",
@@ -409,7 +413,9 @@ export function useCodFormState(
       }
 
       setFormErrors({});
-      console.log("Order submitted:", formData);
+      clientLogger.info("[CODFORM] Pedido enviado exitosamente", {
+        formData,
+      });
       alert("¡Pedido enviado exitosamente!");
     },
     [blocks, errorMessages, formData]
@@ -468,7 +474,10 @@ export function useCodFormState(
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : "Error al guardar el formulario";
-      console.error("❌ Error al guardar:", error);
+      clientLogger.error("[CODFORM] Error al guardar formulario", {
+        error,
+        shopId: propietario?.shopId,
+      });
       setSaveStatus({
         type: "error",
         message,

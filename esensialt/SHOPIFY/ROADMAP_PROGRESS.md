@@ -24,7 +24,7 @@ Documento de tracking para el supervisor y el equipo técnico. Cada día registr
 **Cómo probar (comandos):**
 ```bash
 cd SHOPIFY
-npm run test:run      # 24 tests (a partir del Día 2) — evidencia automatizada
+npm run test:run      # 28 tests (a partir del Día 3) — evidencia automatizada
 ```
 
 ---
@@ -39,7 +39,7 @@ npm run test:run      # 24 tests (a partir del Día 2) — evidencia automatizad
 **Solución implementada:**
 - Extract `useCodFormState.ts` (estado, efectos, handlers) y `codform.api.ts` (fetch + upsert reutilizable).
 - Integración de **Zod** (`validation/codform.validation.ts`) + mensajes visibles por campo (`FormContent`), bloqueando guardados inválidos.
-- Pruebas unitarias nuevas: `tests/codform.validation.test.ts` (4 casos) → suite total **24 tests**.
+- Pruebas unitarias nuevas: `tests/codform.validation.test.ts` (4 casos) → suite total **28 tests** (desde Día 3 se suman logs).
 - Documentación actualizada (sección “Avances Día 2” en `presentar.md` + `TESTING_SETUP.md`).
 
 **Arquitectura / Código clave:**
@@ -50,7 +50,7 @@ npm run test:run      # 24 tests (a partir del Día 2) — evidencia automatizad
 **Cómo probar:**
 ```bash
 cd SHOPIFY
-npm run test:run          # 24 tests (incluye validaciones Zod)
+npm run test:run          # 28 tests (incluye validaciones + logging)
 npm run preview           # http://localhost:3000 → interactuar con formulario y ver mensajes de error
 ```
 
@@ -60,17 +60,38 @@ npm run preview           # http://localhost:3000 → interactuar con formulario
 
 ---
 
-## Día 3 (próximo) — Logging profesional & configuración avanzada
+## Día 3 — Logging profesional & configuración avanzada
 
-**Meta (pendiente):**
-- Reemplazar `console.log` por logger (Winston/Pino) + centralización de niveles (`APP_CONFIG.logging`).
-- Validaciones backend y logs de `upsertCodForm` (capturar errores de Railway).
-- Documentar en este archivo y en `presentar.md`.
+**Problema detectado (inicio de jornada):**
+- Falta de observabilidad: el flujo `COD Form → API` solo usa `console.log`, lo que impide diferenciar severidad (info/warn/error) y rastrear fallos en producción.
+- Backend sin validaciones extra para el `upsert` y sin alertas cuando Railway responde con `4xx/5xx`.
 
-**Próximos archivos/branches a tocar:**
-- `app/routes/codform/services/codform.api.ts` — agregar logs y manejo de errores refinado.
-- `config/app.config.ts` — habilitar niveles de logging.
-- `presentar.md` — sección “Día 3”.
+**Solución implementada:**
+- Logger backend `app/utils/logger.server.ts` con **Pino** integrado a `APP_CONFIG` (nivel configurable, pretty log en desarrollo).
+- Instrumentación completa en `routes/codform/services/codform.api.ts`: métricas de duración, validación previa del payload (`validateUpsertPayload`) y manejo estructurado de errores con `parseErrorBody`.
+- Logger cliente `app/utils/logger.client.ts` adoptado en `useCodFormState.ts` para evitar `console.*` y mantener trazabilidad en UI.
+- Suite de pruebas `tests/codform.api.test.ts` con mocks de logger (`vi.spyOn`) verificando `info`, `warn` y `error`.
+- Documentación y guías actualizadas (`presentar.md`, `TESTING_SETUP.md`, este roadmap).
+
+**Arquitectura / Código clave:**
+- `app/utils/logger.server.ts`, `app/utils/logger.client.ts`.
+- `app/routes/codform/services/codform.api.ts` (logs + validaciones).
+- `app/routes/codform/hooks/useCodFormState.ts` (logger cliente en flujos UI).
+- `tests/codform.api.test.ts` (mocks/verificación de eventos de log).
+
+**Cómo probar:**
+```bash
+cd SHOPIFY
+npm run dev            # observar logs Pino en consola (pretty)
+npm run test:run       # 28 tests, incluye verificaciones de logging
+```
+
+**Tareas inmediatas:**
+- [x] Instalar dependencias (`pino`, `pino-pretty`, tipos).
+- [x] Crear utilidades de logging (archivo nuevo en `app/utils` o similar) y configurar `APP_CONFIG`.
+- [x] Reemplazar `console.log` en `useCodFormState` y `codform.api.ts`.
+- [x] Extender pruebas unitarias/mocks para verificar logging (al menos smoke test con `vi.spyOn`).
+- [x] Actualizar documentación (`ROADMAP_PROGRESS.md`, `presentar.md`, `TESTING_SETUP.md`).
 
 ---
 

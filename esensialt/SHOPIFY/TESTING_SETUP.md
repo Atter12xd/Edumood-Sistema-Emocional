@@ -11,7 +11,7 @@
 ### **1. Sistema de Tests Automatizados**
 - ✅ Vitest como framework de testing (alternativa moderna a Jest)
 - ✅ @testing-library/react para testing de componentes
-- ✅ 24 tests funcionando correctamente
+- ✅ 28 tests funcionando correctamente
 - ✅ Coverage reports configurados
 - ✅ UI interactiva para debugging
 - ✅ Validaciones Zod activas en `hook` + `FormContent` con mensajes en UI
@@ -50,6 +50,14 @@ npm run test:coverage
 - Componentes existentes (`DesignPanel`, `PreviewPanel`, `FormContent`) no cambiaron su API pública
 - Todas las URLs ahora se construyen con `getBackendUrl` desde `app/config/app.config.ts`
 
+### 🆕 Cambios Día 3
+
+- Logger backend `app/utils/logger.server.ts` configurado con **Pino** (pretty en desarrollo, JSON en producción)
+- Instrumentación de `codform.api.ts` con validación previa (`validateUpsertPayload`), medición de tiempos y manejo exhaustivo de errores (`parseErrorBody`)
+- Logger cliente `app/utils/logger.client.ts` integrado en `hooks/useCodFormState.ts` para reemplazar `console.*`
+- Tests `tests/codform.api.test.ts` validan que se emiten `info`, `warn` y `error` según la respuesta del backend
+- Documentación y ejemplos de ejecución de logs actualizados (sección “Logs y Observabilidad” más abajo)
+
 ---
 
 ## 📁 Estructura de Archivos
@@ -61,10 +69,14 @@ SHOPIFY/
 │   ├── setup.ts              # Setup global de tests
 │   ├── example.test.ts       # Tests de ejemplo
 │   ├── config.test.ts        # Tests de configuración y helpers
-│   └── codform.validation.test.ts # Tests Zod + reglas del formulario COD
+│   ├── codform.validation.test.ts # Tests Zod + reglas del formulario COD
+│   └── codform.api.test.ts        # Logs + flujo COD form → Railway
 ├── app/
 │   └── config/
 │       └── app.config.ts     # ⭐ Configuración centralizada
+│   └── utils/
+│       ├── logger.client.ts  # ⭐ Logger en frontend
+│       └── logger.server.ts  # ⭐ Logger Pino para backend
 │   └── routes/
 │       └── codform/
 │           ├── hooks/useCodFormState.ts   # ⭐ Estado y handlers extraídos
@@ -150,8 +162,30 @@ describe('Servicio COD Form', () => {
 | Archivo | Tests | Estado |
 |---------|-------|--------|
 | `example.test.ts` | 5 tests | ✅ Pasando |
-| `config.test.ts` | 15 tests | ✅ Pasando |
-| **TOTAL** | **24 tests** | **✅ 100%** |
+| `config.test.ts` | 9 tests | ✅ Pasando |
+| `codform.validation.test.ts` | 4 tests | ✅ Pasando |
+| `codform.api.test.ts` | 6 tests | ✅ Pasando |
+| **TOTAL** | **28 tests** | **✅ 100%** |
+
+---
+
+## 🔍 Logs y Observabilidad
+
+### **Backend (Pino)**
+- Command: `npm run dev` (modo Remix dev)  
+- Configuración: `LOG_LEVEL=debug` para mayor verbosidad  
+- Salida esperada (desarrollo): formato coloreado con campos `service`, `environment`, `shopId`, `durationMs`
+- Producción: logs en formato JSON (sin pretty transport)
+
+### **Frontend**
+- Logger en `app/utils/logger.client.ts` respeta `APP_CONFIG.logging.level`
+- Eventos clave (`handleSubmit`, errores de carga/guardado) se registran con prefijo `[CODFORM]`
+- Disponible en DevTools → pestaña **Console**
+
+### **Tests de Logging**
+- Archivo: `tests/codform.api.test.ts`
+- Uso: `vi.mock("~/utils/logger.server")` para verificar llamadas `info`, `warn`, `error`
+- Cubren escenarios: fetch exitoso, backend 500, payload inválido, guardado exitoso
 
 ---
 
@@ -296,7 +330,7 @@ npm run test:coverage
 ---
 
 **✅ Tests configurados exitosamente el Día 1**  
-**📊 24 tests pasando**  
+**📊 28 tests pasando**
 **🎯 Listo para continuar con Día 2-3**
 
 ### **Plus para la demo:**

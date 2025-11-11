@@ -23,8 +23,16 @@
 - ✅ `codform.tsx` dividido: lógica extraída a `hooks/useCodFormState.ts` y `services/codform.api.ts`
 - ✅ Configuración central reutilizada (`app/config/app.config.ts`) para endpoints COD Form
 - ✅ Validaciones dinámicas con Zod (`validation/codform.validation.ts`) visibles en UI (mensajes por campo)
-- ✅ Suite de pruebas (`npm run test:run`) ampliada a 24 tests (incluye validaciones)
+- ✅ Suite de pruebas (`npm run test:run`) ampliada a 28 tests (validaciones + logging COD)
 - 🧱 Base lista para continuar con validaciones y mejoras de UI sin tocar lógica de API
+
+### 📆 Avances Día 3 - Logging & Observabilidad
+
+- ✅ Logger backend `app/utils/logger.server.ts` con **Pino** (pretty en dev, JSON en producción) y nivel definido por `APP_CONFIG.logging.level`
+- ✅ Instrumentación en `routes/codform/services/codform.api.ts`: métricas de duración, `validateUpsertPayload` y manejo exhaustivo de errores Railway
+- ✅ Logger cliente `app/utils/logger.client.ts` utilizado desde `hooks/useCodFormState.ts` (sin `console.*`, mensajes estructurados)
+- ✅ Pruebas `tests/codform.api.test.ts` validan que se emiten `info`, `warn` y `error` según escenarios
+- ✅ Documentación actualizada (este reporte + `TESTING_SETUP.md`) con comandos y ejemplos de salida
 
 ### **¿Qué es?**
 Un formulario de **Cash on Delivery (COD)** moderno con integración de la pasarela de pagos **Culqi** (líder en Perú).
