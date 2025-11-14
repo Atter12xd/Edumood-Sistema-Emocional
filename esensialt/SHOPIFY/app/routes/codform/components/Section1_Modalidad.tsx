@@ -25,6 +25,7 @@ interface Section1Props {
   onFormTypeChange: (type: string) => void;
   onButtonConfigChange: (config: ButtonConfig) => void;
   onShowModal: () => void;
+  showHeading?: boolean;
 }
 
 const buttonAnimations = {
@@ -39,7 +40,8 @@ const Section1_Modalidad: React.FC<Section1Props> = ({
   buttonConfig,
   onFormTypeChange,
   onButtonConfigChange,
-  onShowModal
+  onShowModal,
+  showHeading = true
 }) => {
   const [showPreview, setShowPreview] = useState(false);
 
@@ -50,9 +52,12 @@ const Section1_Modalidad: React.FC<Section1Props> = ({
 
   return (
     <>
-      {/* Sección 1: Modalidad */}
-      <div style={{marginBottom: '40px'}}>
-        <h3 style={codFormStyles.sectionTitle}>1. Selecciona la modalidad del formulario</h3>
+      <div style={{ marginBottom: '32px' }}>
+        {showHeading && (
+          <h3 style={{ ...codFormStyles.sectionTitle, marginBottom: '18px' }}>
+            1. Selecciona la modalidad del formulario
+          </h3>
+        )}
         <div style={codFormStyles.modeButtons}>
           <button
             style={formType === 'popup' ? {...codFormStyles.modeButton, ...codFormStyles.modeButtonActive} : codFormStyles.modeButton}
@@ -80,7 +85,7 @@ const Section1_Modalidad: React.FC<Section1Props> = ({
       </div>
 
       {/* Botón de Compra */}
-      <div style={{marginBottom: '40px', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '20px', background: '#fff'}}>
+      <div style={{marginBottom: '32px', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '22px', background: '#fff'}}>
         <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
           <div>
             <h3 style={{margin: 0, fontSize: '18px', fontWeight: '600'}}>Botón de Compra</h3>

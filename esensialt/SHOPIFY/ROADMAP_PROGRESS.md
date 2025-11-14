@@ -2,9 +2,56 @@
 
 Documento de tracking para el supervisor y el equipo técnico. Cada día registra el problema identificado, la solución aplicada y la referencia técnica (archivo y comando) para verificarlo.
 
+## 📊 Resumen de Progreso
+
+**Plan Original (17 días):**
+- ✅ Días 1-3: Tests y configuración → **Completado** (documentado como "Día 1-3")
+- ✅ Días 4-5: Logging profesional → **Completado** (documentado como "Día 4-5")
+- ✅ Días 6-7: Refactorización y validaciones → **Completado** (documentado como "Día 6-7")
+- ✅ Días 8-9: Debouncing y hooks compartidos → **Completado** (documentado como "Día 8-9")
+- ✅ Día 10: Tests finales y documentación → **Completado** (deploy pendiente - se guarda en GitHub)
+- ⏳ Días 11-17: Integración Culqi → **Pendiente**
+
+**Nota:** El trabajo se completó en un orden diferente al plan original, pero todo el trabajo de los días 1-9 está terminado. El Día 4 (EXTRA) fue trabajo adicional no planificado.
+
+> 📖 **Para más detalles:** Ver `ESTADO_PROYECTO.md` para explicación completa para equipo y supervisores.
+
 ---
 
-## Día 1 — Base técnica ausente (tests y configuración)
+## Día 10 — Tests Finales y Documentación
+
+**Problema detectado:**
+- Necesidad de validar que toda la refactorización funciona correctamente antes de continuar con Culqi.
+- Documentación necesaria para el equipo y supervisores sobre el estado del proyecto.
+
+**Solución implementada:**
+- Verificación de suite completa de tests (28+ tests).
+- Actualización de documentación técnica (`ESTADO_PROYECTO.md`, `ROADMAP_PROGRESS.md`).
+- Validación de configuración y variables de entorno.
+- Preparación de estructura para integración Culqi (configuración lista, solo falta credenciales).
+
+**Arquitectura / Código clave:**
+- `tests/*.test.ts` (suite completa de tests).
+- `app/config/app.config.ts` (configuración Culqi preparada).
+- `ENV_TEMPLATE.txt` (template actualizado).
+- `ESTADO_PROYECTO.md` (documentación completa).
+
+**Cómo probar:**
+```bash
+cd SHOPIFY
+npm run test:run          # Ejecutar todos los tests
+npm run typecheck         # Verificar tipos TypeScript
+```
+
+**Nota:** Deploy no realizado - todo se guarda en GitHub. Se realizará después de completar la integración Culqi.
+
+**Próximo paso:** Día 11 - Setup Culqi (requiere credenciales de Culqi).
+
+---
+
+## Día 1-3 — Base técnica ausente (tests y configuración)
+
+**Nota:** Según el plan original, estos eran Días 1-3, pero se completaron en una sesión.
 
 **Problema detectado (negocio / supervisor):**
 - No existían pruebas automatizadas; cualquier cambio podía romper producción sin darnos cuenta.
@@ -29,7 +76,9 @@ npm run test:run      # 28 tests (a partir del Día 3) — evidencia automatizad
 
 ---
 
-## Día 2 — Componente gigante y sin modularidad / validaciones débiles
+## Día 6-7 — Componente gigante y sin modularidad / validaciones débiles
+
+**Nota:** Según el plan original, este trabajo correspondía a los Días 6-7, pero se completó antes como "Día 2" en el roadmap.
 
 **Problema detectado:**
 - `codform.tsx` superaba +400 líneas mezclando estado, fetch, UI y manejo de pantalla.
@@ -60,7 +109,9 @@ npm run preview           # http://localhost:3000 → interactuar con formulario
 
 ---
 
-## Día 3 — Logging profesional & configuración avanzada
+## Día 4-5 — Logging profesional & configuración avanzada
+
+**Nota:** Según el plan original, este trabajo correspondía a los Días 4-5, pero se completó como "Día 3" en el roadmap.
 
 **Problema detectado (inicio de jornada):**
 - Falta de observabilidad: el flujo `COD Form → API` solo usa `console.log`, lo que impide diferenciar severidad (info/warn/error) y rastrear fallos en producción.
@@ -92,6 +143,82 @@ npm run test:run       # 28 tests, incluye verificaciones de logging
 - [x] Reemplazar `console.log` en `useCodFormState` y `codform.api.ts`.
 - [x] Extender pruebas unitarias/mocks para verificar logging (al menos smoke test con `vi.spyOn`).
 - [x] Actualizar documentación (`ROADMAP_PROGRESS.md`, `presentar.md`, `TESTING_SETUP.md`).
+
+---
+
+## Día 4 (EXTRA) — Diseñador visual del formulario COD
+
+**Nota:** Este día fue un trabajo adicional no planificado originalmente. Se agregó para mejorar la experiencia del diseñador visual.
+
+**Problema detectado:**
+- La sección de estilos (`Section4_Estilos`) solo permitía editar dos textos de error; no había control sobre colores, tipografía ni banderas como RTL o pantalla completa.
+- La vista previa y el modal no reflejaban cambios globales (bordes, sombras, ocultar labels), generando desconfianza en el resultado final.
+
+**Solución aplicada (iteración inicial, aún pendiente pulido visual fino):**
+- Nuevo panel “Apariencia general” con selectores de color (hex / rgba), sliders para tamaño de texto, bordes, ancho de borde y sombra, además de toggles para: ocultar labels, ocultar botón de cierre, RTL y modo pantalla completa.
+- Panel “Mensajes de validación” plegable con inputs styled para `required` e `invalid`.
+- `FormContent` ahora aplica el estilo global: fondo, border radius, sombra, dirección RTL y control dinámico para mostrar/ocultar etiquetas.
+- `PreviewPanel` y el modal en `codform.tsx` adoptan el nuevo `FormStyle` (sin duplicar cajas blancas), respetando `enableFullScreen`, sombras y bordes.
+- Documentación del flujo de diseño actualizada en este roadmap; el UI todavía recibirá refinamiento visual (tipografías, spacing y presets predefinidos) en una iteración posterior.
+
+**Arquitectura / Código clave:**
+- `app/routes/codform/components/Section4_Estilos.tsx`
+- `app/routes/codform/components/FormContent.tsx`
+- `app/routes/codform/components/PreviewPanel.tsx`
+- `app/routes/codform/codform.tsx`
+
+**Cómo validar hoy (aterrizaje rápido):**
+```bash
+cd SHOPIFY
+npm run dev            # abrir /codform y mover sliders/toggles para ver cambios
+```
+- Probar: activar/desactivar `Ocultar etiquetas`, cambiar colores en formato HEX y RGBA, encender `enableFullScreen` y el modo RTL para verificar que el contenedor se adapte.
+
+**Notas / próximos pasos de diseño:**
+- Implementar presets y controles más condensados (UI final con iconografía y tooltips).
+- Conectar los nuevos estilos con un sistema de guardado/borrador para volver a versiones previas.
+- Ajustar la vista móvil con layout dedicado una vez definidos los componentes definitivos.
+
+---
+
+## Día 8-9 — Eliminación de código duplicado y hooks compartidos
+
+**Nota:** Este trabajo corresponde correctamente a los Días 8-9 del plan original.
+
+**Problema detectado:**
+- Múltiples componentes duplicaban la lógica de detección de tamaño de ventana (`window.innerWidth < 768`) con listeners de resize idénticos.
+- La función `handleSave` en `useCodFormState` no tenía protección contra múltiples guardados simultáneos, pudiendo causar race conditions.
+- Falta de hooks reutilizables para funcionalidades comunes (debouncing, detección de viewport).
+
+**Solución implementada:**
+- Creación de hooks compartidos en `app/utils/hooks/`:
+  - `useDebounce` y `useDebounceWithCancel`: Para evitar múltiples ejecuciones de funciones costosas.
+  - `useWindowSize`, `useIsMobile`, `useIsDesktop`: Para detección unificada de tamaño de ventana y breakpoints.
+- Protección contra guardados múltiples en `handleSave` usando `useRef` para rastrear estado de guardado.
+- Eliminación de código duplicado en 5 componentes (`DesignPanel`, `PreviewPanel`, `FormContent`, `Section3_Bloques`, `Section4_Estilos`) reemplazando lógica de resize por `useIsMobile`.
+- Suite de pruebas `tests/hooks.test.ts` para validar comportamiento de debouncing.
+
+**Arquitectura / Código clave:**
+- `app/utils/hooks/useDebounce.ts` (hooks de debouncing).
+- `app/utils/hooks/useWindowSize.ts` (hooks de detección de viewport).
+- `app/utils/hooks/index.ts` (exportaciones centralizadas).
+- `app/routes/codform/hooks/useCodFormState.ts` (protección contra guardados múltiples).
+- Componentes actualizados: `DesignPanel.tsx`, `PreviewPanel.tsx`, `FormContent.tsx`, `Section3_Bloques.tsx`, `Section4_Estilos.tsx`.
+
+**Cómo probar:**
+```bash
+cd SHOPIFY
+npm run test:run          # Incluye tests de hooks (nuevos)
+npm run dev               # Verificar que componentes responden correctamente a cambios de tamaño
+```
+- Verificar: Hacer clic múltiples veces rápidamente en "Guardar" → solo debe ejecutarse una vez.
+- Verificar: Redimensionar ventana → todos los componentes deben actualizar correctamente sin duplicar listeners.
+
+**Beneficios:**
+- ✅ ~150 líneas de código duplicado eliminadas.
+- ✅ Prevención de race conditions en guardados.
+- ✅ Hooks reutilizables disponibles para futuras features.
+- ✅ Código más mantenible y testeable.
 
 ---
 

@@ -1,6 +1,8 @@
 // components/FormContent.tsx
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { FormData, FormStyle, Blocks, Product, BlockColors, FormErrors } from '../types/codform.types';
+import { useIsMobile } from '~/utils/hooks';
+import { CulqiCheckout } from './CulqiCheckout';
 
 interface FormContentProps {
   formData: FormData;
@@ -25,22 +27,7 @@ const FormContent: React.FC<FormContentProps> = ({
   onInputChange,
   onSubmit
 }) => {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      if (typeof window !== 'undefined') {
-        setIsMobile(window.innerWidth < 768);
-      }
-    };
-    
-    checkMobile();
-    
-    if (typeof window !== 'undefined') {
-      window.addEventListener('resize', checkMobile);
-      return () => window.removeEventListener('resize', checkMobile);
-    }
-  }, []);
+  const isMobile = useIsMobile();
 
   const globalColors = blockColors || {
     textColor: '#1f2937',
@@ -68,6 +55,27 @@ const FormContent: React.FC<FormContentProps> = ({
 
   const formGroupStyle: React.CSSProperties = {
     marginBottom: isMobile ? '16px' : '20px'
+  };
+
+  const labelDisplay = formStyle.hideFieldLabels ? 'none' : 'block';
+
+  const shadowValue =
+    typeof formStyle.shadow === 'number' && formStyle.shadow > 0
+      ? `0 ${formStyle.shadow}px ${formStyle.shadow * 2}px rgba(15, 23, 42, 0.12)`
+      : 'none';
+
+  const formBaseStyle: React.CSSProperties = {
+    width: '100%',
+    backgroundColor: formStyle.backgroundColor,
+    color: formStyle.textColor,
+    fontSize: `${formStyle.textSize}px`,
+    borderRadius: `${formStyle.borderRadius}px`,
+    border: `${formStyle.borderWidth}px solid ${formStyle.borderColor}`,
+    boxShadow: shadowValue,
+    padding: isMobile ? '18px' : '24px',
+    direction: formStyle.enableRTL ? 'rtl' : 'ltr',
+    textAlign: formStyle.enableRTL ? 'right' : 'left',
+    transition: 'all 0.25s ease'
   };
 
   const blockComponents: Record<string, JSX.Element> = {
@@ -110,7 +118,7 @@ const FormContent: React.FC<FormContentProps> = ({
     shippingRates: blocks.shippingRates?.visible ? (
       <div key="shippingRates" style={formGroupStyle}>
         <label style={{
-          display: 'block',
+          display: labelDisplay,
           marginBottom: isMobile ? '6px' : '8px',
           fontSize: isMobile ? `${Math.max(13, getBlockStyles('shippingRates').textSize - 1)}px` : `${getBlockStyles('shippingRates').textSize}px`,
           fontWeight: '500',
@@ -179,7 +187,7 @@ const FormContent: React.FC<FormContentProps> = ({
     discountCodes: blocks.discountCodes?.visible ? (
       <div key="discountCodes" style={formGroupStyle}>
         <label style={{
-          display: 'block',
+          display: labelDisplay,
           marginBottom: isMobile ? '6px' : '8px',
           fontSize: isMobile ? `${Math.max(13, getBlockStyles('discountCodes').textSize - 1)}px` : `${getBlockStyles('discountCodes').textSize}px`,
           fontWeight: '500',
@@ -229,7 +237,7 @@ const FormContent: React.FC<FormContentProps> = ({
     firstName: blocks.firstName?.visible ? (
       <div key="firstName" style={formGroupStyle}>
         <label style={{
-          display: 'block',
+          display: labelDisplay,
           marginBottom: isMobile ? '6px' : '8px',
           fontSize: isMobile ? `${Math.max(13, getBlockStyles('firstName').textSize - 1)}px` : `${getBlockStyles('firstName').textSize}px`,
           fontWeight: '500',
@@ -268,7 +276,7 @@ const FormContent: React.FC<FormContentProps> = ({
     lastName: blocks.lastName?.visible ? (
       <div key="lastName" style={formGroupStyle}>
         <label style={{
-          display: 'block',
+          display: labelDisplay,
           marginBottom: isMobile ? '6px' : '8px',
           fontSize: isMobile ? `${Math.max(13, getBlockStyles('lastName').textSize - 1)}px` : `${getBlockStyles('lastName').textSize}px`,
           fontWeight: '500',
@@ -307,7 +315,7 @@ const FormContent: React.FC<FormContentProps> = ({
     phone: blocks.phone?.visible ? (
       <div key="phone" style={formGroupStyle}>
         <label style={{
-          display: 'block',
+          display: labelDisplay,
           marginBottom: isMobile ? '6px' : '8px',
           fontSize: isMobile ? `${Math.max(13, getBlockStyles('phone').textSize - 1)}px` : `${getBlockStyles('phone').textSize}px`,
           fontWeight: '500',
@@ -346,7 +354,7 @@ const FormContent: React.FC<FormContentProps> = ({
     address: blocks.address?.visible ? (
       <div key="address" style={formGroupStyle}>
         <label style={{
-          display: 'block',
+          display: labelDisplay,
           marginBottom: isMobile ? '6px' : '8px',
           fontSize: isMobile ? `${Math.max(13, getBlockStyles('address').textSize - 1)}px` : `${getBlockStyles('address').textSize}px`,
           fontWeight: '500',
@@ -385,7 +393,7 @@ const FormContent: React.FC<FormContentProps> = ({
     address2: blocks.address2?.visible ? (
       <div key="address2" style={formGroupStyle}>
         <label style={{
-          display: 'block',
+          display: labelDisplay,
           marginBottom: isMobile ? '6px' : '8px',
           fontSize: isMobile ? `${Math.max(13, getBlockStyles('address2').textSize - 1)}px` : `${getBlockStyles('address2').textSize}px`,
           fontWeight: '500',
@@ -422,7 +430,7 @@ const FormContent: React.FC<FormContentProps> = ({
     province: blocks.province?.visible ? (
       <div key="province" style={formGroupStyle}>
         <label style={{
-          display: 'block',
+          display: labelDisplay,
           marginBottom: isMobile ? '6px' : '8px',
           fontSize: isMobile ? `${Math.max(13, getBlockStyles('province').textSize - 1)}px` : `${getBlockStyles('province').textSize}px`,
           fontWeight: '500',
@@ -461,7 +469,7 @@ const FormContent: React.FC<FormContentProps> = ({
     city: blocks.city?.visible ? (
       <div key="city" style={formGroupStyle}>
         <label style={{
-          display: 'block',
+          display: labelDisplay,
           marginBottom: isMobile ? '6px' : '8px',
           fontSize: isMobile ? `${Math.max(13, getBlockStyles('city').textSize - 1)}px` : `${getBlockStyles('city').textSize}px`,
           fontWeight: '500',
@@ -500,7 +508,7 @@ const FormContent: React.FC<FormContentProps> = ({
     postalCode: blocks.postalCode?.visible ? (
       <div key="postalCode" style={formGroupStyle}>
         <label style={{
-          display: 'block',
+          display: labelDisplay,
           marginBottom: isMobile ? '6px' : '8px',
           fontSize: isMobile ? `${Math.max(13, getBlockStyles('postalCode').textSize - 1)}px` : `${getBlockStyles('postalCode').textSize}px`,
           fontWeight: '500',
@@ -539,7 +547,7 @@ const FormContent: React.FC<FormContentProps> = ({
     email: blocks.email?.visible ? (
       <div key="email" style={formGroupStyle}>
         <label style={{
-          display: 'block',
+          display: labelDisplay,
           marginBottom: isMobile ? '6px' : '8px',
           fontSize: isMobile ? `${Math.max(13, getBlockStyles('email').textSize - 1)}px` : `${getBlockStyles('email').textSize}px`,
           fontWeight: '500',
@@ -578,7 +586,7 @@ const FormContent: React.FC<FormContentProps> = ({
     orderNote: blocks.orderNote?.visible ? (
       <div key="orderNote" style={formGroupStyle}>
         <label style={{
-          display: 'block',
+          display: labelDisplay,
           marginBottom: isMobile ? '6px' : '8px',
           fontSize: isMobile ? `${Math.max(13, getBlockStyles('orderNote').textSize - 1)}px` : `${getBlockStyles('orderNote').textSize}px`,
           fontWeight: '500',
@@ -611,7 +619,7 @@ const FormContent: React.FC<FormContentProps> = ({
           </p>
         )}
       </div>
-      ) : <React.Fragment key="newsletter" />,
+    ) : <React.Fragment key="orderNote" />,
 
     terms: blocks.terms?.visible ? (
       <div key="terms" style={{display: 'flex', alignItems: 'flex-start', gap: isMobile ? '6px' : '8px', marginBottom: isMobile ? '16px' : '20px'}}>
@@ -641,27 +649,29 @@ const FormContent: React.FC<FormContentProps> = ({
     ) : <React.Fragment key="terms" />,
 
     submitButton: blocks.submitButton?.visible ? (
-      <button
-        key="submitButton"
-        type="submit"
-        style={{
-          width: '100%',
-          padding: isMobile ? '14px' : '16px',
-          backgroundColor: '#6366f1',
-          color: 'white',
-          border: 'none',
-          borderRadius: `${globalColors.borderRadius}px`,
-          fontSize: isMobile ? `${Math.max(14, globalColors.textSize)}px` : `${globalColors.textSize + 2}px`,
-          fontWeight: '700',
-          cursor: 'pointer',
-          textTransform: 'uppercase',
-          letterSpacing: isMobile ? '0.3px' : '0.5px',
-          boxShadow: `0 ${globalColors.shadow}px ${globalColors.shadow * 2}px rgba(99, 102, 241, 0.3)`,
-          transition: 'all 0.3s ease'
-        }}
-      >
-        {getBlockStyles('submitButton').label || `COMPLETA TU COMPRA - ${product.currency}${product.price}`}
-      </button>
+      <div key="submitButton" style={{ marginTop: '20px' }}>
+        <CulqiCheckout
+          amount={product.price}
+          email={formData.email || ''}
+          description={`Pedido COD - ${product.name}`}
+          currency={product.currency || 'PEN'}
+          onSuccess={(chargeId, chargeData) => {
+            // Mostrar mensaje de éxito
+            alert(`¡Pago exitoso! ID de transacción: ${chargeId}`);
+            console.log('Pago exitoso:', { chargeId, chargeData });
+          }}
+          onError={(error) => {
+            alert(`Error en el pago: ${error}`);
+            console.error('Error en pago:', error);
+          }}
+          buttonText={getBlockStyles('submitButton').label || `PAGAR ${product.currency}${product.price.toFixed(2)}`}
+          buttonStyle={{
+            borderRadius: `${globalColors.borderRadius}px`,
+            fontSize: isMobile ? `${Math.max(14, globalColors.textSize)}px` : `${globalColors.textSize + 2}px`,
+            boxShadow: `0 ${globalColors.shadow}px ${globalColors.shadow * 2}px rgba(99, 102, 241, 0.3)`,
+          }}
+        />
+      </div>
     ) : <React.Fragment key="submitButton" />
   };
 
@@ -670,7 +680,11 @@ const FormContent: React.FC<FormContentProps> = ({
     .filter(Boolean);
 
   return (
-    <form onSubmit={onSubmit} style={{width: '100%'}}>
+    <form
+      onSubmit={onSubmit}
+      style={formBaseStyle}
+      dir={formStyle.enableRTL ? 'rtl' : 'ltr'}
+    >
       {orderedComponents}
     </form>
   );

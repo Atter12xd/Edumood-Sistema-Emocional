@@ -1,12 +1,12 @@
 // D:\VICTOR SHOPIFY\CODIGOS\Essential\essential\app\routes\codform\codform.tsx
-import React from 'react';
-import { useLoaderData } from '@remix-run/react';
-import DesignPanel from './components/DesignPanel';
-import PreviewPanel from './components/PreviewPanel';
-import FormContent from './components/FormContent';
-import { codFormStyles } from './styles/codform.styles';
-import type { CodFormLoaderData } from './types/codform.types';
-import { useCodFormState } from './hooks/useCodFormState';
+import React from "react";
+import { useLoaderData } from "@remix-run/react";
+import DesignPanel from "./components/DesignPanel";
+import PreviewPanel from "./components/PreviewPanel";
+import FormContent from "./components/FormContent";
+import { codFormStyles } from "./styles/codform.styles";
+import type { CodFormLoaderData } from "./types/codform.types";
+import { useCodFormState } from "./hooks/useCodFormState";
 
 export default function CodForm() {
   const loaderData = useLoaderData<CodFormLoaderData>();
@@ -49,132 +49,191 @@ export default function CodForm() {
     handleDiscard,
   } = actions;
 
+  const storeName = propietario?.shopName || loaderData.shop || "Tienda sin nombre";
+  const ownerEmail = propietario?.email || "Sin correo asignado";
+  const activeBlocks = Object.values(blocks || {}).filter((block) => block?.visible !== false).length;
+  const totalBlocks = Object.keys(blocks || {}).length;
+  const modeLabel = formType === "popup" ? "Popup interactivo" : "Embebido";
+  const formStatusLabel = hasChanges
+    ? "Cambios sin guardar"
+    : savedFormId
+    ? "Sin cambios pendientes"
+    : "Formulario nuevo";
+  const shortFormId = savedFormId ? `${savedFormId.slice(0, 6)}…` : "—";
+
   if (isLoading) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      }}>
-        <div style={{
-          textAlign: 'center',
-          color: '#fff',
-          padding: '40px',
-          backgroundColor: 'rgba(255,255,255,0.1)',
-          borderRadius: '16px',
-          backdropFilter: 'blur(10px)',
-        }}>
-          <div style={{
-            width: '48px',
-            height: '48px',
-            border: '4px solid rgba(255,255,255,0.3)',
-            borderTopColor: '#fff',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-            margin: '0 auto 20px',
-          }} />
-          <p style={{ fontSize: '16px', fontWeight: '500' }}>Cargando formulario...</p>
+      <div
+        style={{
+          ...codFormStyles.page,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            textAlign: "center",
+            color: "#1f2937",
+            padding: "36px 48px",
+            backgroundColor: "rgba(255,255,255,0.85)",
+            borderRadius: "20px",
+            boxShadow: "0 25px 60px rgba(15,23,42,0.12)",
+            backdropFilter: "blur(12px)",
+          }}
+        >
+          <div
+            style={{
+              width: "48px",
+              height: "48px",
+              border: "4px solid rgba(44,110,203,0.18)",
+              borderTopColor: "#2c6ecb",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+              margin: "0 auto 18px",
+            }}
+          />
+          <p style={{ fontSize: "16px", fontWeight: 600, color: "#2c6ecb", letterSpacing: "0.04em" }}>
+            Preparando el diseñador COD…
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
-    }}>
-      {/* HEADER CON BOTONES */}
-      {hasChanges && (
-        <div style={{
-          position: 'sticky',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 1000,
-          backgroundColor: '#374151',
-          borderBottom: '1px solid #4b5563',
-          padding: isMounted && !isDesktop ? '12px 16px' : '14px 24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-        }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            color: '#fff',
-            fontSize: isMounted && !isDesktop ? '14px' : '15px'
-          }}>
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{flexShrink: 0}}>
-              <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2"/>
-              <path d="M10 6v4l3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-            <span>Cambios no guardados</span>
+    <div style={codFormStyles.page}>
+      <div style={codFormStyles.pageContent}>
+        <header style={codFormStyles.headerBar}>
+          <div style={codFormStyles.headerLeft}>
+            <div style={codFormStyles.headerIcon}>🛍️</div>
+            <div style={codFormStyles.headerTitleGroup}>
+              <span style={codFormStyles.headerTitle}>Essential COD Form Designer</span>
+              <span style={codFormStyles.headerSubtitle}>{storeName}</span>
+              <div style={codFormStyles.headerMeta}>
+                <span style={codFormStyles.metaBadge}>📧 {ownerEmail}</span>
+                <span style={codFormStyles.metaBadge}>🆔 Form ID: {shortFormId}</span>
+                <span style={codFormStyles.metaBadge}>
+                  {hasChanges ? "🟠" : savedFormId ? "🟢" : "⚪️"} {formStatusLabel}
+                </span>
+              </div>
+            </div>
           </div>
-          
-          <div style={{
-            display: 'flex',
-            gap: isMounted && !isDesktop ? '8px' : '12px'
-          }}>
+
+          <div style={codFormStyles.headerActions}>
             <button
+              type="button"
               onClick={handleDiscard}
-              disabled={isSaving}
+              disabled={!hasChanges || isSaving}
               style={{
-                padding: isMounted && !isDesktop ? '8px 16px' : '10px 20px',
-                backgroundColor: 'transparent',
-                color: '#fff',
-                border: '1px solid #6b7280',
-                borderRadius: '6px',
-                cursor: isSaving ? 'not-allowed' : 'pointer',
-                fontSize: isMounted && !isDesktop ? '13px' : '14px',
-                fontWeight: '500',
-                transition: 'all 0.2s',
-                fontFamily: 'inherit',
-                opacity: isSaving ? 0.5 : 1,
+                ...codFormStyles.headerButtonGhost,
+                opacity: !hasChanges || isSaving ? 0.6 : 1,
+                cursor: !hasChanges || isSaving ? "not-allowed" : "pointer",
               }}
-              onMouseEnter={(e) => !isSaving && (e.currentTarget.style.backgroundColor = '#4b5563')}
-              onMouseLeave={(e) => !isSaving && (e.currentTarget.style.backgroundColor = 'transparent')}
             >
-              Descartar
+              Descartar cambios
             </button>
-            
             <button
+              type="button"
+              onClick={() => setShowModal(true)}
+              style={{
+                ...codFormStyles.headerButtonSecondary,
+                opacity: showModal ? 0.7 : 1,
+              }}
+            >
+              Vista previa
+            </button>
+            <button
+              type="button"
               onClick={() => void handleSave()}
               disabled={isSaving}
               style={{
-                padding: isMounted && !isDesktop ? '8px 16px' : '10px 20px',
-                backgroundColor: isSaving ? '#6b7280' : '#10b981',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: isSaving ? 'not-allowed' : 'pointer',
-                fontSize: isMounted && !isDesktop ? '13px' : '14px',
-                fontWeight: '600',
-                transition: 'all 0.2s',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                fontFamily: 'inherit',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
+                ...codFormStyles.headerButtonPrimary,
+                opacity: isSaving ? 0.7 : 1,
+                cursor: isSaving ? "not-allowed" : "pointer",
               }}
-              onMouseEnter={(e) => !isSaving && (e.currentTarget.style.backgroundColor = '#059669')}
-              onMouseLeave={(e) => !isSaving && (e.currentTarget.style.backgroundColor = '#10b981')}
             >
-              {isSaving && (
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{animation: 'spin 1s linear infinite'}}>
-                  <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray="30" strokeDashoffset="10" opacity="0.3"/>
-                </svg>
-              )}
-              {isSaving ? 'Guardando...' : 'Guardar'}
+              {isSaving ? "Guardando…" : hasChanges ? "Guardar cambios" : "Guardar"}
             </button>
           </div>
+        </header>
+
+        <section style={codFormStyles.insightRow}>
+          <article style={codFormStyles.insightCard}>
+            <span style={codFormStyles.insightLabel}>Modalidad activa</span>
+            <span style={codFormStyles.insightValue}>{modeLabel}</span>
+            <span style={codFormStyles.insightContext}>
+              Cambia entre popup o embebido sin perder configuraciones guardadas.
+            </span>
+          </article>
+          <article style={codFormStyles.insightCard}>
+            <span style={codFormStyles.insightLabel}>Bloques visibles</span>
+            <span style={codFormStyles.insightValue}>
+              {activeBlocks} / {totalBlocks}
+            </span>
+            <span style={codFormStyles.insightContext}>
+              Control granular de cada sección del formulario de conversión.
+            </span>
+          </article>
+          <article style={codFormStyles.insightCard}>
+            <span style={codFormStyles.insightLabel}>Estilos personalizados</span>
+            <span style={codFormStyles.insightValue}>
+              {`${Math.round(formStyle.textSize)}px · ${formStyle.borderRadius}px`}
+            </span>
+            <span style={codFormStyles.insightContext}>
+              Textos, radios y colores listos para alinearse con tu branding.
+            </span>
+          </article>
+        </section>
+
+        <div
+          style={{
+            ...codFormStyles.layoutGrid,
+            gridTemplateColumns: isMounted && isDesktop ? "minmax(0, 480px) minmax(0, 1fr)" : "1fr",
+          }}
+        >
+          <div style={codFormStyles.configColumn}>
+            <div style={codFormStyles.surfaceCard}>
+              <DesignPanel
+                formType={formType}
+                formStyle={formStyle}
+                blocks={blocks}
+                blockOrder={blockOrder}
+                blockColors={blockColors}
+                errorMessages={errorMessages}
+                product={product}
+                buttonConfig={buttonConfig}
+                onFormTypeChange={setFormType}
+                onStyleChange={handleStyleChange}
+                onBlockToggle={handleBlockToggle}
+                onBlockReorder={handleBlockReorder}
+                onBlockColorsChange={handleBlockColorsChange}
+                onBlockConfigChange={handleBlockConfigChange}
+                onErrorMessageChange={handleErrorMessageChange}
+                onButtonConfigChange={handleButtonConfigChange}
+                onShowModal={() => setShowModal(true)}
+              />
+            </div>
+          </div>
+
+          <div>
+            <PreviewPanel
+              formType={formType}
+              formData={formData}
+              formStyle={formStyle}
+              blocks={blocks}
+              product={product}
+              blockOrder={blockOrder}
+              blockColors={blockColors}
+              buttonConfig={buttonConfig}
+              onInputChange={handleInputChange}
+              onSubmit={handleSubmit}
+              onShowModal={() => setShowModal(true)}
+              formErrors={formErrors}
+            />
+          </div>
         </div>
-      )}
+      </div>
 
       {/* MENSAJE DE ESTADO (Success/Error) */}
       {saveStatus.type && (
@@ -223,62 +282,25 @@ export default function CodForm() {
         </div>
       )}
 
-      {/* CONTENIDO PRINCIPAL */}
-      <div style={{padding: '20px'}}>
-        <div style={{
-          ...codFormStyles.container,
-          display: 'grid',
-          gridTemplateColumns: isMounted && isDesktop ? '1fr 1fr' : '1fr',
-          gap: '20px',
-          maxWidth: '1600px',
-          margin: '0 auto'
-        }}>
-          <DesignPanel
-            formType={formType}
-            formStyle={formStyle}
-            blocks={blocks}
-            blockOrder={blockOrder}
-            blockColors={blockColors}
-            errorMessages={errorMessages}
-            product={product}
-            buttonConfig={buttonConfig}
-            onFormTypeChange={setFormType}
-            onStyleChange={handleStyleChange}
-            onBlockToggle={handleBlockToggle}
-            onBlockReorder={handleBlockReorder}
-            onBlockColorsChange={handleBlockColorsChange}
-            onBlockConfigChange={handleBlockConfigChange}
-            onErrorMessageChange={handleErrorMessageChange}
-            onButtonConfigChange={handleButtonConfigChange}
-            onShowModal={() => setShowModal(true)}
-          />
-          
-          <PreviewPanel
-            formType={formType}
-            formData={formData}
-            formStyle={formStyle}
-            blocks={blocks}
-            product={product}
-            blockOrder={blockOrder}
-            blockColors={blockColors}
-            buttonConfig={buttonConfig}
-            onInputChange={handleInputChange}
-            onSubmit={handleSubmit}
-            onShowModal={() => setShowModal(true)}
-            formErrors={formErrors}
-          />
-        </div>
-      </div>
-
       {/* MODAL */}
       {showModal && (
         <div style={codFormStyles.modalOverlay} onClick={() => setShowModal(false)}>
           <div 
             style={{
               ...codFormStyles.formModal,
-              boxShadow: `0 ${formStyle.shadow}px ${formStyle.shadow * 2}px rgba(0, 0, 0, 0.3)`,
-              maxWidth: isMounted && isDesktop ? '600px' : '90%',
-              width: '100%'
+              boxShadow: formStyle.shadow > 0
+                ? `0 ${formStyle.shadow}px ${formStyle.shadow * 2}px rgba(0, 0, 0, 0.25)`
+                : 'none',
+              maxWidth: formStyle.enableFullScreen
+                ? '96%'
+                : isMounted && isDesktop
+                ? '600px'
+                : '90%',
+              width: formStyle.enableFullScreen ? '100%' : '100%',
+              borderRadius: `${formStyle.borderRadius}px`,
+              border: `${formStyle.borderWidth}px solid ${formStyle.borderColor}`,
+              background: formStyle.backgroundColor,
+              overflow: 'hidden'
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -293,7 +315,11 @@ export default function CodForm() {
                 </button>
               )}
             </div>
-            <div style={codFormStyles.modalContent}>
+            <div style={{
+              ...codFormStyles.modalContent,
+              padding: formStyle.enableFullScreen ? '12px' : '25px',
+              background: formStyle.backgroundColor
+            }}>
               <FormContent
                 formData={formData}
                 formStyle={formStyle}

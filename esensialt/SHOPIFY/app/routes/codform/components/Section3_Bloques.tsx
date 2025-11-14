@@ -1,7 +1,8 @@
 // components/Section3_Bloques.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Blocks, Product, BlockColors, BlockConfig } from '../types/codform.types';
 import { codFormStyles } from '../styles/codform.styles';
+import { useIsMobile } from '~/utils/hooks';
 
 interface BlockItem {
   id: string;
@@ -19,6 +20,7 @@ interface Section3Props {
   onBlockReorder: (newOrder: string[]) => void;
   onBlockColorsChange: (colors: BlockColors) => void;
   onBlockConfigChange: (blockName: string, config: Partial<BlockConfig>) => void;
+  showHeading?: boolean;
 }
 
 const Section3_Bloques: React.FC<Section3Props> = ({
@@ -29,28 +31,14 @@ const Section3_Bloques: React.FC<Section3Props> = ({
   onBlockToggle,
   onBlockReorder,
   onBlockColorsChange,
-  onBlockConfigChange
+  onBlockConfigChange,
+  showHeading = true
 }) => {
   const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = React.useState<number | null>(null);
   const [showColorPicker, setShowColorPicker] = React.useState(false);
   const [editingBlock, setEditingBlock] = React.useState<string | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      if (typeof window !== 'undefined') {
-        setIsMobile(window.innerWidth < 768);
-      }
-    };
-    
-    checkMobile();
-    
-    if (typeof window !== 'undefined') {
-      window.addEventListener('resize', checkMobile);
-      return () => window.removeEventListener('resize', checkMobile);
-    }
-  }, []);
+  const isMobile = useIsMobile();
 
   const handleColorChange = (field: string, value: string | number) => {
     const newColors = {...blockColors, [field]: value};
@@ -180,20 +168,24 @@ const Section3_Bloques: React.FC<Section3Props> = ({
 
   return (
     <>
-      <div style={{marginBottom: isMobile ? '30px' : '40px'}}>
-        <h3 style={{...codFormStyles.sectionTitle, fontSize: isMobile ? '16px' : '18px'}}>3. Personaliza el formulario</h3>
-        <div style={{...codFormStyles.customizationInfo, fontSize: isMobile ? '13px' : '14px', padding: isMobile ? '12px' : '16px'}}>
-          <div style={{...codFormStyles.blockInfo, marginBottom: isMobile ? '8px' : '10px'}}><input type="checkbox" disabled style={{marginRight: '6px'}} /><span>Los bloques grises están <strong>deshabilitados</strong> en su formulario. Use el botón con forma de ojo para habilitarlos.</span></div>
-          <div style={{...codFormStyles.blockInfo, marginBottom: isMobile ? '8px' : '10px'}}><input type="checkbox" checked disabled style={{marginRight: '6px'}} /><span>Los bloques blancos están <strong>activos</strong> en tu formulario.</span></div>
-          <div style={{...codFormStyles.blockInfo, color: '#1e40af'}}><input type="checkbox" checked disabled style={{marginRight: '6px'}} /><span>Los bloques azules se activan cuando arrastra una tarjeta por el formulario. Suelte la tarjeta para completar la acción.</span></div>
+      {showHeading && (
+        <div style={{ marginBottom: isMobile ? '26px' : '32px' }}>
+          <h3 style={{ ...codFormStyles.sectionTitle, fontSize: isMobile ? '16px' : '18px', marginBottom: isMobile ? '12px' : '16px' }}>
+            3. Personaliza el formulario
+          </h3>
+          <div style={{ ...codFormStyles.customizationInfo, fontSize: isMobile ? '13px' : '14px', padding: isMobile ? '12px' : '16px' }}>
+            <div style={{ ...codFormStyles.blockInfo, marginBottom: isMobile ? '8px' : '10px' }}><input type="checkbox" disabled style={{ marginRight: '6px' }} /><span>Los bloques grises están <strong>deshabilitados</strong> en su formulario. Use el botón con forma de ojo para habilitarlos.</span></div>
+            <div style={{ ...codFormStyles.blockInfo, marginBottom: isMobile ? '8px' : '10px' }}><input type="checkbox" checked disabled style={{ marginRight: '6px' }} /><span>Los bloques blancos están <strong>activos</strong> en tu formulario.</span></div>
+            <div style={{ ...codFormStyles.blockInfo, color: '#1e40af' }}><input type="checkbox" checked disabled style={{ marginRight: '6px' }} /><span>Los bloques azules se activan cuando arrastra una tarjeta por el formulario. Suelte la tarjeta para completar la acción.</span></div>
+          </div>
+
+          <div style={{ background: '#f8fafc', borderRadius: isMobile ? '6px' : '8px', padding: isMobile ? '12px' : '16px', marginBottom: isMobile ? '16px' : '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '8px', marginBottom: isMobile ? '6px' : '8px', fontSize: isMobile ? '13px' : '14px', color: '#666' }}><span style={{ fontSize: isMobile ? '14px' : '16px' }}>✏️</span><span>Clica en el botón <strong>lápiz</strong> para editar un bloque.</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '8px', marginBottom: isMobile ? '6px' : '8px', fontSize: isMobile ? '13px' : '14px', color: '#666' }}><span style={{ fontSize: isMobile ? '14px' : '16px' }}>⋮</span><span>Presione y mueva el botón <strong>arrastrador</strong> para mover un bloque.</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '8px', fontSize: isMobile ? '13px' : '14px', color: '#666' }}><span style={{ fontSize: isMobile ? '14px' : '16px' }}>↕️</span><span>Clica en los botones de <strong>flechas</strong> para cambiar la posición de un bloque.</span></div>
+          </div>
         </div>
-        
-        <div style={{background: '#f8fafc', borderRadius: isMobile ? '6px' : '8px', padding: isMobile ? '12px' : '16px', marginBottom: isMobile ? '16px' : '20px'}}>
-          <div style={{display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '8px', marginBottom: isMobile ? '6px' : '8px', fontSize: isMobile ? '13px' : '14px', color: '#666'}}><span style={{fontSize: isMobile ? '14px' : '16px'}}>✏️</span><span>Clica en el botón <strong>lápiz</strong> para editar un bloque.</span></div>
-          <div style={{display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '8px', marginBottom: isMobile ? '6px' : '8px', fontSize: isMobile ? '13px' : '14px', color: '#666'}}><span style={{fontSize: isMobile ? '14px' : '16px'}}>⋮</span><span>Presione y mueva el botón <strong>arrastrador</strong> para mover un bloque.</span></div>
-          <div style={{display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '8px', fontSize: isMobile ? '13px' : '14px', color: '#666'}}><span style={{fontSize: isMobile ? '14px' : '16px'}}>↕️</span><span>Clica en los botones de <strong>flechas</strong> para cambiar la posición de un bloque.</span></div>
-        </div>
-      </div>
+      )}
 
       <div style={{marginBottom: isMobile ? '30px' : '40px', border: '1px solid #e5e7eb', borderRadius: isMobile ? '6px' : '8px', padding: isMobile ? '16px' : '20px', background: '#fff'}}>
         <div style={{display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', marginBottom: isMobile ? '16px' : '20px', gap: isMobile ? '12px' : '0'}}>

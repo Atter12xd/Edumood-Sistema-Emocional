@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -26,6 +27,7 @@ import {
   validateCodFormData,
 } from "../validation/codform.validation";
 import clientLogger from "~/utils/logger.client";
+import { useWindowSize } from "~/utils/hooks";
 
 export interface UseCodFormStateResult {
   state: {
@@ -184,7 +186,7 @@ export function useCodFormState(
   loaderData: CodFormLoaderData
 ): UseCodFormStateResult {
   const [isMounted, setIsMounted] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(true);
+  const { isDesktop } = useWindowSize();
   const [hasChanges, setHasChanges] = useState(false);
   const [propietario, setPropietario] = useState<Owner | null>(
     loaderData.owner ?? null
@@ -196,6 +198,9 @@ export function useCodFormState(
     type: "success" | "error" | null;
     message: string;
   }>({ type: null, message: "" });
+  
+  // Ref para evitar múltiples guardados simultáneos
+  const isSavingRef = useRef(false);
 
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
   const [showModal, setShowModal] = useState(false);
@@ -220,21 +225,6 @@ export function useCodFormState(
 
   useEffect(() => {
     setIsMounted(true);
-
-    const checkScreenSize = () => {
-      if (typeof window !== "undefined") {
-        setIsDesktop(window.innerWidth >= 1024);
-      }
-    };
-
-    checkScreenSize();
-
-    if (typeof window !== "undefined") {
-      window.addEventListener("resize", checkScreenSize);
-      return () => window.removeEventListener("resize", checkScreenSize);
-    }
-
-    return undefined;
   }, []);
 
   const loadExistingForm = useCallback(async () => {
@@ -413,15 +403,22 @@ export function useCodFormState(
       }
 
       setFormErrors({});
-      clientLogger.info("[CODFORM] Pedido enviado exitosamente", {
+      clientLogger.info("[CODFORM] Formulario validado, listo para pago", {
         formData,
       });
-      alert("¡Pedido enviado exitosamente!");
+      // El pago se procesará a través del componente CulqiCheckout
+      // Este handler solo valida el formulario
     },
     [blocks, errorMessages, formData]
   );
 
   const handleSave = useCallback(async () => {
+    // Prevenir múltiples guardados simultáneos
+    if (isSavingRef.current || isSaving) {
+      clientLogger.warn("[CODFORM] Guardado ya en progreso, ignorando llamada duplicada");
+      return;
+    }
+
     if (!propietario?.shopId) {
       setSaveStatus({
         type: "error",
@@ -444,6 +441,7 @@ export function useCodFormState(
     setFormErrors({});
 
     try {
+      isSavingRef.current = true;
       setIsSaving(true);
       setSaveStatus({ type: null, message: "" });
 
@@ -484,6 +482,7 @@ export function useCodFormState(
       });
       setTimeout(() => setSaveStatus({ type: null, message: "" }), 5000);
     } finally {
+      isSavingRef.current = false;
       setIsSaving(false);
     }
   }, [
@@ -497,6 +496,7 @@ export function useCodFormState(
     buttonConfig,
     errorMessages,
     savedFormId,
+    isSaving,
   ]);
 
   const handleDiscard = useCallback(() => {

@@ -162,6 +162,7 @@ export default function ConfigWhatsApp() {
   }, [isWidgetActive]);
 
   // Efecto para reactivar widget cuando cambien los valores del formulario
+  // Usa debouncing para evitar múltiples llamadas
   React.useEffect(() => {
     if (isWidgetActive) {
       const timeoutId = setTimeout(() => {
@@ -172,7 +173,9 @@ export default function ConfigWhatsApp() {
     }
   }, [
     position, color, icon, startMessage, buttonStyle, 
-    isActive24Hours, startTime, endTime, activeDays, isWidgetActive
+    isActive24Hours, startTime, endTime, activeDays, isWidgetActive,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    activateWidget // Nota: activateWidget ya tiene validación interna
   ]);
 
   // Estados de loading

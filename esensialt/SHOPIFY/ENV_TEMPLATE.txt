@@ -22,23 +22,24 @@ DATABASE_URL=postgresql://user:password@host:5432/database_name
 BACKEND_URL=https://essent-backen-production.up.railway.app
 
 # --------------------------------------------
-# CULQI PAYMENT GATEWAY (Test Environment)
+# CULQI PAYMENT GATEWAY
 # --------------------------------------------
 # Public Key (usado en FRONTEND - puede ser visible)
+# Reemplaza con tus credenciales reales de Culqi
 CULQI_PUBLIC_KEY=pk_test_dkeS17NBw8B1srCt
 
 # Secret Key (usado en BACKEND - NUNCA exponer en frontend)
+# Reemplaza con tus credenciales reales de Culqi
 CULQI_SECRET_KEY=sk_test_367uAvKKpKk9ChQs
 
 # Environment: 'test' | 'production'
+# Usa 'test' para desarrollo y pruebas, 'production' para producción
 CULQI_ENV=test
 
 # --------------------------------------------
-# CULQI PRODUCTION (cuando estés listo para prod)
+# NOTA: Las credenciales de arriba son de ejemplo
+# Obtén tus credenciales reales desde: https://integraciones.culqi.com/
 # --------------------------------------------
-# CULQI_PUBLIC_KEY=pk_live_your_production_key
-# CULQI_SECRET_KEY=sk_live_your_production_secret
-# CULQI_ENV=production
 
 # --------------------------------------------
 # APPLICATION CONFIGURATION

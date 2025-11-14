@@ -2,6 +2,11 @@ import { vitePlugin as remix } from "@remix-run/dev";
 import { installGlobals } from "@remix-run/node";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 installGlobals({ nativeFetch: true });
 
@@ -38,6 +43,11 @@ if (host === "localhost") {
 }
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      "~": resolve(__dirname, "./app"),
+    },
+  },
   server: {
     allowedHosts: [host],
     cors: {

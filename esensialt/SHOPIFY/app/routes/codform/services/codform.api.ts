@@ -1,5 +1,5 @@
 import { BACKEND_CONFIG, getBackendUrl } from "~/config/app.config";
-import logger from "~/utils/logger.server";
+import clientLogger from "~/utils/logger.client";
 import type {
   BlockColors,
   Blocks,
@@ -91,7 +91,7 @@ export async function fetchCodFormByShopId(
   shopId: string
 ): Promise<CodFormApiForm | null> {
   if (!shopId) {
-    logger.warn({ shopId }, "[CODFORM] shopId no proporcionado para fetchCodFormByShopId");
+    clientLogger.warn({ shopId }, "[CODFORM] shopId no proporcionado para fetchCodFormByShopId");
     return null;
   }
 
@@ -99,7 +99,7 @@ export async function fetchCodFormByShopId(
   const startedAt = Date.now();
 
   try {
-    logger.info({ shopId, url }, "[CODFORM] solicitando formulario existente");
+    clientLogger.info({ shopId, url }, "[CODFORM] solicitando formulario existente");
 
     const response = await fetch(url, {
       method: "GET",
@@ -110,7 +110,7 @@ export async function fetchCodFormByShopId(
 
     if (!response.ok) {
       const errorBody = await parseErrorBody(response);
-      logger.warn(
+      clientLogger.warn(
         { shopId, status: response.status, errorBody },
         "[CODFORM] error al obtener formulario"
       );
@@ -120,18 +120,18 @@ export async function fetchCodFormByShopId(
     const result = (await response.json()) as CodFormApiResponse<CodFormApiForm[]>;
 
     if (!result.success || !Array.isArray(result.data) || result.data.length === 0) {
-      logger.info({ shopId, durationMs: Date.now() - startedAt }, "[CODFORM] no se encontró formulario existente");
+      clientLogger.info({ shopId, durationMs: Date.now() - startedAt }, "[CODFORM] no se encontró formulario existente");
       return null;
     }
 
-    logger.info(
+    clientLogger.info(
       { shopId, formId: result.data[0].id, durationMs: Date.now() - startedAt },
       "[CODFORM] formulario obtenido exitosamente"
     );
 
     return result.data[0];
   } catch (error) {
-    logger.error(
+    clientLogger.error(
       { shopId, error: error instanceof Error ? error.message : error },
       "[CODFORM] fallo al obtener formulario"
     );
@@ -165,7 +165,7 @@ export async function upsertCodForm({
   });
 
   if (validationErrors.length > 0) {
-    logger.warn(
+    clientLogger.warn(
       { shopId: shopOwner?.shopId, validationErrors },
       "[CODFORM] payload inválido al intentar guardar"
     );
@@ -204,7 +204,7 @@ export async function upsertCodForm({
   };
 
   try {
-    logger.info(
+    clientLogger.info(
       {
         shopId: shopOwner.shopId,
         method: hasExistingForm ? "PATCH" : "POST",
@@ -223,7 +223,7 @@ export async function upsertCodForm({
 
     if (!response.ok) {
       const errorBody = await parseErrorBody(response);
-      logger.error(
+      clientLogger.error(
         {
           shopId: shopOwner.shopId,
           status: response.status,
@@ -241,7 +241,7 @@ export async function upsertCodForm({
 
     const result = (await response.json()) as CodFormApiResponse<CodFormApiForm>;
 
-    logger.info(
+    clientLogger.info(
       {
         shopId: shopOwner.shopId,
         formId: result?.data?.id,
@@ -252,7 +252,7 @@ export async function upsertCodForm({
 
     return result;
   } catch (error) {
-    logger.error(
+    clientLogger.error(
       {
         shopId: shopOwner?.shopId,
         error: error instanceof Error ? error.message : error,

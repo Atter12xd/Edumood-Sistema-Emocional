@@ -46,6 +46,7 @@
     "@shopify/shopify-app-session-storage-prisma": "^6.0.0",
     "cors": "^2.8.5",
     "cross-env": "^7.0.3",
+    "culqi-node": "^2.1.0",
     "express": "^4.21.2",
     "isbot": "^5.1.0",
     "pino": "^10.1.0",

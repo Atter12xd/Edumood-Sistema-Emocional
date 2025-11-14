@@ -2,10 +2,18 @@
 import React from 'react';
 import { codFormStyles } from '../styles/codform.styles';
 
-const Section2_Pais: React.FC = () => {
+interface Section2Props {
+  showHeading?: boolean;
+}
+
+const Section2_Pais: React.FC<Section2Props> = ({ showHeading = true }) => {
   return (
-    <div style={{marginBottom: '40px'}}>
-      <h3 style={codFormStyles.sectionTitle}>2. Selecciona el país del formulario</h3>
+    <div style={{ marginBottom: '28px' }}>
+      {showHeading && (
+        <h3 style={{ ...codFormStyles.sectionTitle, marginBottom: '12px' }}>
+          2. Selecciona el país del formulario
+        </h3>
+      )}
       <select style={codFormStyles.countrySelect}>
         <option value="peru">Perú</option>
         <option value="colombia">Colombia</option>
