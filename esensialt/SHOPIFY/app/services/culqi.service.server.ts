@@ -1,14 +1,29 @@
-// app/services/culqi.service.ts
+// app/services/culqi.service.server.ts
 // Servicio para integración con Culqi Payment Gateway
+// NOTA: Este archivo SOLO se ejecuta en el servidor (server-only)
 
-import Culqi from 'culqi-node';
 import { CULQI_CONFIG } from '~/config/app.config';
 import logger from '~/utils/logger.server';
 
-// Inicializar cliente de Culqi
-const culqi = new Culqi({
-  privateKey: CULQI_CONFIG.secretKey,
-});
+// Función para obtener instancia de Culqi (solo en runtime del servidor)
+let culqiInstance: any = null;
+
+function getCulqiInstance() {
+  if (typeof window !== 'undefined') {
+    throw new Error('Culqi service can only be used on the server');
+  }
+  
+  if (!culqiInstance) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore - culqi-node no tiene tipos perfectos
+    const Culqi = require('culqi-node');
+    culqiInstance = new Culqi({
+      privateKey: CULQI_CONFIG.secretKey,
+    });
+  }
+  
+  return culqiInstance;
+}
 
 /**
  * Tipos para las respuestas de Culqi
@@ -76,6 +91,7 @@ export async function createToken(cardData: {
       last_four: cardData.card_number.slice(-4),
     });
 
+    const culqi = getCulqiInstance();
     const token = await culqi.tokens.create({
       card_number: cardData.card_number,
       cvv: cardData.cvv,
@@ -121,6 +137,7 @@ export async function createCharge(
       email: chargeData.email,
     });
 
+    const culqi = getCulqiInstance();
     const charge = await culqi.charges.create({
       amount: chargeData.amount,
       currency_code: chargeData.currency_code,
@@ -168,6 +185,7 @@ export async function getCharge(
       charge_id: chargeId,
     });
 
+    const culqi = getCulqiInstance();
     const charge = await culqi.charges.get(chargeId);
 
     return {

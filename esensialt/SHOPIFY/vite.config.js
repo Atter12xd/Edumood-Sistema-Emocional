@@ -62,7 +62,7 @@ export default defineConfig({
   },
   plugins: [
     remix({
-      ignoredRouteFiles: ["**/.*"],
+      ignoredRouteFiles: ["**/.*", "**/*.server.ts"], // Ignorar archivos .server.ts como rutas
       future: {
         v3_fetcherPersist: true,
         v3_relativeSplatPath: true,
@@ -79,5 +79,14 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ["@shopify/app-bridge-react", "@shopify/polaris"],
+    exclude: ["culqi-node"],
+  },
+  ssr: {
+    noExternal: ["@shopify/polaris"],
+    external: ["culqi-node"],
+    resolve: {
+      external: ["culqi-node"],
+      noExternal: ["@shopify/polaris"],
+    },
   },
 });

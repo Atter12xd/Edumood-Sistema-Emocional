@@ -12,7 +12,7 @@ if (
 
 /** @type {import('@remix-run/dev').AppConfig} */
 module.exports = {
-  ignoredRouteFiles: ["**/.*"],
+  ignoredRouteFiles: ["**/.*", "**/index.ts"], // Ignorar index.ts como ruta
   appDirectory: "app",
   serverModuleFormat: "cjs",
   dev: { port: process.env.HMR_SERVER_PORT || 8002 },

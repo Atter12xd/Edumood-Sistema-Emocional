@@ -2,7 +2,7 @@
 // API Route para crear cargos con Culqi
 
 import { json, type ActionFunctionArgs } from '@remix-run/node';
-import { createCharge, validateCulqiConfig } from '~/services/culqi.service';
+import { createCharge, validateCulqiConfig } from '~/services/culqi.service.server';
 import { CULQI_CONFIG } from '~/config/app.config';
 import logger from '~/utils/logger.server';
 import { z } from 'zod';
