@@ -20,6 +20,14 @@ async function startServer() {
 
   const app = express();
 
+  // Ignorar requests de Chrome DevTools que causan 404 (no son errores reales)
+  app.use((req, res, next) => {
+    if (req.url.includes('.well-known/appspecific')) {
+      return res.status(404).end();
+    }
+    next();
+  });
+
   // Configurar para servir archivos estáticos
   app.use(express.static("build/client"));
 

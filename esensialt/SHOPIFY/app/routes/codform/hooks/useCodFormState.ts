@@ -233,12 +233,20 @@ export function useCodFormState(
       return;
     }
 
+    // Si es un shopId de preview local, no intentar cargar desde API
+    if (propietario.shopId === "local-preview-shop-id" || propietario.shopId.includes("local-preview")) {
+      setIsLoading(false);
+      setHasChanges(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
       const existingForm = await fetchCodFormByShopId(propietario.shopId);
 
       if (!existingForm) {
         setSavedFormId(null);
+        setIsLoading(false);
         return;
       }
 
@@ -259,15 +267,18 @@ export function useCodFormState(
       setFormErrors({});
       setHasChanges(false);
     } catch (error) {
-      clientLogger.error("[CODFORM] Error al cargar formulario", {
+      clientLogger.warn("[CODFORM] No se pudo cargar formulario existente (modo preview o sin conexión)", {
         error,
         shopId: propietario?.shopId,
       });
-      setSaveStatus({
-        type: "error",
-        message: "Error al cargar formulario existente",
-      });
-      setTimeout(() => setSaveStatus({ type: null, message: "" }), 5000);
+      // No mostrar error en modo preview, solo continuar con valores por defecto
+      if (!propietario?.shopId?.includes("local-preview")) {
+        setSaveStatus({
+          type: "error",
+          message: "Error al cargar formulario existente",
+        });
+        setTimeout(() => setSaveStatus({ type: null, message: "" }), 5000);
+      }
     } finally {
       setIsLoading(false);
     }

@@ -660,27 +660,35 @@ export const codFormStyles = {
     left: 0,
     right: 0,
     bottom: 0,
-    background: 'rgba(0, 0, 0, 0.7)',
+    background: 'rgba(0, 0, 0, 0.75)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1000,
-    padding: '20px'
+    padding: '20px',
+    overflowY: 'auto' as const,
   },
   formModal: {
     background: 'white',
     borderRadius: '16px',
-    maxWidth: '500px',
+    maxWidth: '700px',
     width: '100%',
-    maxHeight: '90vh',
-    overflowY: 'auto' as const
+    maxHeight: '95vh',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    overflow: 'hidden',
+    margin: 'auto',
   },
   modalHeader: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: '25px',
-    borderBottom: '1px solid #e5e7eb'
+    padding: '20px 25px',
+    borderBottom: '1px solid #e5e7eb',
+    position: 'sticky' as const,
+    top: 0,
+    background: 'white',
+    zIndex: 10,
   },
   closeButton: {
     background: 'none',
@@ -697,7 +705,12 @@ export const codFormStyles = {
     borderRadius: '50%'
   },
   modalContent: {
-    padding: '25px'
+    padding: '25px',
+    overflowY: 'auto' as const,
+    overflowX: 'hidden',
+    flex: 1,
+    // Scrollbar personalizado para mejor UX
+    scrollBehavior: 'smooth' as const,
   },
   formHeader: {
     marginBottom: '25px'

@@ -1,4 +1,4 @@
-# 🧪 Comandos para Probar la Aplicación Localmente
+ # 🧪 Comandos para Probar la Aplicación Localmente
 
 **Guía rápida para probar sin entrar a Shopify**
 

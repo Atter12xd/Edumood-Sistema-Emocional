@@ -18,6 +18,7 @@ export default function CodForm() {
     hasChanges,
     isSaving,
     isLoading,
+    propietario,
     savedFormId,
     saveStatus,
     formData,
@@ -284,42 +285,115 @@ export default function CodForm() {
 
       {/* MODAL */}
       {showModal && (
-        <div style={codFormStyles.modalOverlay} onClick={() => setShowModal(false)}>
+        <div 
+          style={{
+            ...codFormStyles.modalOverlay,
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.75)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px',
+            overflowY: 'auto',
+          }} 
+          onClick={() => setShowModal(false)}
+        >
           <div 
             style={{
               ...codFormStyles.formModal,
               boxShadow: formStyle.shadow > 0
-                ? `0 ${formStyle.shadow}px ${formStyle.shadow * 2}px rgba(0, 0, 0, 0.25)`
-                : 'none',
+                ? `0 ${formStyle.shadow}px ${formStyle.shadow * 2}px rgba(0, 0, 0, 0.35)`
+                : '0 20px 60px rgba(0, 0, 0, 0.3)',
               maxWidth: formStyle.enableFullScreen
-                ? '96%'
+                ? '98%'
                 : isMounted && isDesktop
-                ? '600px'
-                : '90%',
+                ? '700px'
+                : '95%',
               width: formStyle.enableFullScreen ? '100%' : '100%',
               borderRadius: `${formStyle.borderRadius}px`,
               border: `${formStyle.borderWidth}px solid ${formStyle.borderColor}`,
               background: formStyle.backgroundColor,
-              overflow: 'hidden'
+              maxHeight: '95vh',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+              margin: 'auto',
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={codFormStyles.modalHeader}>
-              <h2 style={{fontSize: isMounted && isDesktop ? '24px' : '20px', fontWeight: '700', color: '#1a1a1a', margin: 0}}>PAGO CONTRA REEMBOLSO</h2>
+            {/* Header fijo */}
+            <div style={{
+              ...codFormStyles.modalHeader,
+              position: 'sticky',
+              top: 0,
+              background: formStyle.backgroundColor,
+              zIndex: 10,
+              borderBottom: `1px solid ${formStyle.borderColor}`,
+              padding: formStyle.enableFullScreen ? '16px 20px' : '20px 25px',
+            }}>
+              <h2 style={{
+                fontSize: isMounted && isDesktop ? '26px' : '22px', 
+                fontWeight: '700', 
+                color: formStyle.textColor, 
+                margin: 0,
+                letterSpacing: '0.5px',
+              }}>
+                PAGO CONTRA REEMBOLSO
+              </h2>
               {!formStyle.hideCloseButton && (
                 <button 
-                  style={codFormStyles.closeButton}
+                  style={{
+                    ...codFormStyles.closeButton,
+                    background: 'rgba(0, 0, 0, 0.05)',
+                    transition: 'all 0.2s ease',
+                  }}
                   onClick={() => setShowModal(false)}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(0, 0, 0, 0.1)';
+                    e.currentTarget.style.transform = 'rotate(90deg)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(0, 0, 0, 0.05)';
+                    e.currentTarget.style.transform = 'rotate(0deg)';
+                  }}
                 >
                   ×
                 </button>
               )}
             </div>
+            
+            {/* Contenido con scroll */}
             <div style={{
               ...codFormStyles.modalContent,
-              padding: formStyle.enableFullScreen ? '12px' : '25px',
-              background: formStyle.backgroundColor
+              padding: formStyle.enableFullScreen ? '16px 20px' : '25px',
+              background: formStyle.backgroundColor,
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              flex: 1,
+              // Scrollbar personalizado
+              scrollbarWidth: 'thin',
+              scrollbarColor: '#cbd5e1 transparent',
             }}>
+              <style>{`
+                div::-webkit-scrollbar {
+                  width: 8px;
+                }
+                div::-webkit-scrollbar-track {
+                  background: transparent;
+                }
+                div::-webkit-scrollbar-thumb {
+                  background: #cbd5e1;
+                  border-radius: 4px;
+                }
+                div::-webkit-scrollbar-thumb:hover {
+                  background: #94a3b8;
+                }
+              `}</style>
               <FormContent
                 formData={formData}
                 formStyle={formStyle}

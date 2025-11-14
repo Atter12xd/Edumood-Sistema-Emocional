@@ -1,4 +1,4 @@
-// app/routes/codform/components/CulqiCheckout.tsx
+    // app/routes/codform/components/CulqiCheckout.tsx
 // Componente para integración con Culqi Payment Gateway
 
 import React, { useEffect, useState, useRef } from 'react';
@@ -20,7 +20,7 @@ interface CulqiCheckoutProps {
 declare global {
   interface Window {
     Culqi: {
-      publicKey: string;
+      publicKey?: string;
       token: (tokenData: {
         card_number: string;
         cvv: string;
@@ -30,8 +30,8 @@ declare global {
       }) => Promise<{ id: string; object: string }>;
       open: () => void;
       close: () => void;
-      setPublicKey: (key: string) => void;
-      setLanguage: (lang: string) => void;
+      setPublicKey?: (key: string) => void;
+      setLanguage?: (lang: string) => void;
     };
   }
 }
@@ -50,6 +50,9 @@ export const CulqiCheckout: React.FC<CulqiCheckoutProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [culqiLoaded, setCulqiLoaded] = useState(false);
   const scriptLoadedRef = useRef(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const tokenHandlerRef = useRef<((event: Event) => void) | null>(null);
+  const errorHandlerRef = useRef<((event: Event) => void) | null>(null);
 
   // Cargar Culqi.js v4
   useEffect(() => {
@@ -61,18 +64,64 @@ export const CulqiCheckout: React.FC<CulqiCheckoutProps> = ({
     const script = document.createElement('script');
     script.src = 'https://checkout.culqi.com/js/v4';
     script.async = true;
+    // Configurar la llave pública como atributo del script (método alternativo)
+    script.setAttribute('data-culqi-public-key', CULQI_CONFIG.publicKey);
+    
+    // También configurar directamente en el objeto global antes de que se cargue
+    // Esto asegura que esté disponible cuando Culqi se inicialice
+    if (typeof window !== 'undefined') {
+      (window as any).__CULQI_PUBLIC_KEY__ = CULQI_CONFIG.publicKey;
+    }
     script.onload = () => {
       scriptLoadedRef.current = true;
-      setCulqiLoaded(true);
       
-      // Configurar Culqi
-      if (window.Culqi) {
-        window.Culqi.setPublicKey(CULQI_CONFIG.publicKey);
-        window.Culqi.setLanguage('es');
-        clientLogger.info('[CULQI] Culqi.js cargado y configurado', {
-          publicKey: CULQI_CONFIG.publicKey.substring(0, 10) + '...',
-        });
-      }
+      // Esperar un momento para que Culqi se inicialice completamente
+      // Intentar múltiples veces porque Culqi puede tardar en inicializarse
+      let attempts = 0;
+      const maxAttempts = 10;
+      
+      const checkCulqi = setInterval(() => {
+        attempts++;
+        
+        if (window.Culqi) {
+          clearInterval(checkCulqi);
+          
+          // En Culqi.js v4, la llave pública se asigna DIRECTAMENTE (no hay setPublicKey)
+          // Según documentación oficial: Culqi.publicKey = 'tu-llave-publica'
+          // NOTA: Culqi enmascara la llave pública por seguridad, por eso no podemos compararla
+          try {
+            // Asignar directamente la llave pública (método correcto para v4)
+            window.Culqi.publicKey = CULQI_CONFIG.publicKey;
+            
+            // Configurar idioma si existe
+            if (typeof window.Culqi.setLanguage === 'function') {
+              window.Culqi.setLanguage('es');
+            }
+            
+            // Verificar que window.Culqi existe y tiene la propiedad publicKey
+            // (no comparamos el valor porque Culqi lo enmascara por seguridad)
+            if (window.Culqi && 'publicKey' in window.Culqi) {
+              setCulqiLoaded(true);
+              clientLogger.info('[CULQI] Culqi.js cargado y configurado correctamente', {
+                publicKeyLength: CULQI_CONFIG.publicKey.length,
+                publicKeyPrefix: CULQI_CONFIG.publicKey.substring(0, 10) + '...',
+                hasPublicKey: 'publicKey' in window.Culqi,
+                attempts,
+              });
+            } else {
+              clientLogger.error('[CULQI] window.Culqi no tiene la propiedad publicKey');
+              onError('Error al configurar el sistema de pagos. Por favor, recarga la página.');
+            }
+          } catch (error) {
+            clientLogger.error('[CULQI] Error al configurar Culqi', { error });
+            onError('Error al configurar el sistema de pagos. Por favor, recarga la página.');
+          }
+        } else if (attempts >= maxAttempts) {
+          clearInterval(checkCulqi);
+          clientLogger.error('[CULQI] window.Culqi no está disponible después de múltiples intentos');
+          onError('Error al inicializar el sistema de pagos. Por favor, recarga la página.');
+        }
+      }, 100);
     };
     script.onerror = () => {
       clientLogger.error('[CULQI] Error al cargar Culqi.js');
@@ -86,6 +135,24 @@ export const CulqiCheckout: React.FC<CulqiCheckoutProps> = ({
     };
   }, [onError]);
 
+  // Limpiar listeners al desmontar
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      if (tokenHandlerRef.current) {
+        document.removeEventListener('culqi:token', tokenHandlerRef.current);
+        tokenHandlerRef.current = null;
+      }
+      if (errorHandlerRef.current) {
+        document.removeEventListener('culqi:error', errorHandlerRef.current);
+        errorHandlerRef.current = null;
+      }
+    };
+  }, []);
+
   const handlePayment = async () => {
     if (!culqiLoaded || !window.Culqi) {
       onError('El sistema de pagos aún no está listo. Por favor, espera un momento.');
@@ -96,15 +163,37 @@ export const CulqiCheckout: React.FC<CulqiCheckoutProps> = ({
       return;
     }
 
+    // Verificar que la llave pública esté configurada antes de abrir el modal
+    if (!window.Culqi.publicKey) {
+      // Intentar configurarla nuevamente
+      window.Culqi.publicKey = CULQI_CONFIG.publicKey;
+      clientLogger.warn('[CULQI] Reconfigurando llave pública antes de abrir modal');
+    }
+
+    // Verificar que tenemos los datos necesarios
+    if (!email || !amount || amount <= 0) {
+      onError('Por favor, completa todos los campos del formulario antes de pagar.');
+      return;
+    }
+
+    // Limpiar handlers anteriores si existen
+    if (tokenHandlerRef.current) {
+      document.removeEventListener('culqi:token', tokenHandlerRef.current);
+    }
+    if (errorHandlerRef.current) {
+      document.removeEventListener('culqi:error', errorHandlerRef.current);
+    }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
     setIsLoading(true);
 
     try {
-      // Abrir modal de Culqi
-      window.Culqi.open();
-
       // Escuchar evento de token creado
-      const handleCulqiToken = async (event: CustomEvent) => {
-        const token = event.detail;
+      const handleCulqiToken = async (event: Event) => {
+        const customEvent = event as CustomEvent;
+        const token = customEvent.detail;
 
         try {
           clientLogger.info('[CULQI] Token recibido, creando cargo', {
@@ -142,7 +231,22 @@ export const CulqiCheckout: React.FC<CulqiCheckoutProps> = ({
             charge_id: result.data.charge_id,
           });
 
+          // Limpiar listeners
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+          }
+          if (tokenHandlerRef.current) {
+            document.removeEventListener('culqi:token', tokenHandlerRef.current);
+            tokenHandlerRef.current = null;
+          }
+          if (errorHandlerRef.current) {
+            document.removeEventListener('culqi:error', errorHandlerRef.current);
+            errorHandlerRef.current = null;
+          }
+
           onSuccess(result.data.charge_id, result.data);
+          setIsLoading(false);
         } catch (error: unknown) {
           const errorMessage = error instanceof Error ? error.message : 'Error al procesar el pago';
           clientLogger.error('[CULQI] Error al procesar pago', {
@@ -150,40 +254,91 @@ export const CulqiCheckout: React.FC<CulqiCheckoutProps> = ({
             token_id: token.id,
           });
           onError(errorMessage);
-        } finally {
           setIsLoading(false);
-          // Remover listener
-          document.removeEventListener('culqi:token', handleCulqiToken as EventListener);
+          
+          // Limpiar listeners
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+          }
+          if (tokenHandlerRef.current) {
+            document.removeEventListener('culqi:token', tokenHandlerRef.current);
+            tokenHandlerRef.current = null;
+          }
+          if (errorHandlerRef.current) {
+            document.removeEventListener('culqi:error', errorHandlerRef.current);
+            errorHandlerRef.current = null;
+          }
         }
       };
 
       // Escuchar evento de error de Culqi
-      const handleCulqiError = (event: CustomEvent) => {
-        const error = event.detail;
+      const handleCulqiError = (event: Event) => {
+        const customEvent = event as CustomEvent;
+        const error = customEvent.detail;
         clientLogger.error('[CULQI] Error de Culqi', { error });
         onError(error.user_message || 'Error al procesar la tarjeta');
         setIsLoading(false);
-        document.removeEventListener('culqi:error', handleCulqiError as EventListener);
+        
+        // Limpiar listeners
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
+        }
+        if (tokenHandlerRef.current) {
+          document.removeEventListener('culqi:token', tokenHandlerRef.current);
+          tokenHandlerRef.current = null;
+        }
+        if (errorHandlerRef.current) {
+          document.removeEventListener('culqi:error', errorHandlerRef.current);
+          errorHandlerRef.current = null;
+        }
       };
 
+      // Guardar referencias
+      tokenHandlerRef.current = handleCulqiToken;
+      errorHandlerRef.current = handleCulqiError;
+
       // Agregar listeners
-      document.addEventListener('culqi:token', handleCulqiToken as EventListener);
-      document.addEventListener('culqi:error', handleCulqiError as EventListener);
+      document.addEventListener('culqi:token', handleCulqiToken);
+      document.addEventListener('culqi:error', handleCulqiError);
 
       // Timeout de seguridad (30 segundos)
-      setTimeout(() => {
-        if (isLoading) {
-          setIsLoading(false);
-          document.removeEventListener('culqi:token', handleCulqiToken as EventListener);
-          document.removeEventListener('culqi:error', handleCulqiError as EventListener);
-          onError('Tiempo de espera agotado. Por favor, intenta nuevamente.');
+      timeoutRef.current = setTimeout(() => {
+        setIsLoading(false);
+        if (tokenHandlerRef.current) {
+          document.removeEventListener('culqi:token', tokenHandlerRef.current);
+          tokenHandlerRef.current = null;
         }
+        if (errorHandlerRef.current) {
+          document.removeEventListener('culqi:error', errorHandlerRef.current);
+          errorHandlerRef.current = null;
+        }
+        onError('Tiempo de espera agotado. Por favor, intenta nuevamente.');
+        timeoutRef.current = null;
       }, 30000);
+
+      // Abrir modal de Culqi
+      window.Culqi.open();
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error inesperado';
       clientLogger.error('[CULQI] Error inesperado', { error });
       onError(errorMessage);
       setIsLoading(false);
+      
+      // Limpiar listeners
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      if (tokenHandlerRef.current) {
+        document.removeEventListener('culqi:token', tokenHandlerRef.current);
+        tokenHandlerRef.current = null;
+      }
+      if (errorHandlerRef.current) {
+        document.removeEventListener('culqi:error', errorHandlerRef.current);
+        errorHandlerRef.current = null;
+      }
     }
   };
 
