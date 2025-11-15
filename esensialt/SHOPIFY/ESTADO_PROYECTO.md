@@ -229,3 +229,5 @@ Para verificar que todo está completo:
 **Última actualización:** Diciembre 2024  
 **Próxima revisión:** Al completar Día 10
 
+
+

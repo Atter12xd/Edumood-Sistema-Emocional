@@ -149,3 +149,5 @@ Una vez configuradas las credenciales:
 
 **¿Listo para continuar?** Una vez que hayas agregado las credenciales al `.env`, podemos probar la conexión con Culqi.
 
+
+
