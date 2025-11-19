@@ -15,6 +15,13 @@ export default defineConfig({
     },
   },
   test: {
+    // Evitar problemas al crear procesos/forks en algunos entornos Windows
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: true,
+      },
+    },
     globals: true,
     environment: 'jsdom',
     setupFiles: './tests/setup.ts',

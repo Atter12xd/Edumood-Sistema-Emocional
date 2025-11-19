@@ -140,3 +140,6 @@ O en formato de tabla:
 
 Con esa información puedo darte instrucciones más específicas.
 
+
+
+

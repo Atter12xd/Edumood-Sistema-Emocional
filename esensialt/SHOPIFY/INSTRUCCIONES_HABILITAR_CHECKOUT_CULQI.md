@@ -114,3 +114,6 @@ Si después de habilitar el checkout en el panel el problema persiste:
 
 **Nota:** El código está listo y funcionando. El único problema es que la llave no tiene permisos de checkout habilitados en el panel de Culqi. Una vez habilitados, el código funcionará correctamente.
 
+
+
+

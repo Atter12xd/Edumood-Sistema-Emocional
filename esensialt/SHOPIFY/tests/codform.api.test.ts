@@ -4,9 +4,9 @@ import {
   fetchCodFormByShopId,
   upsertCodForm,
 } from "../app/routes/codform/services/codform.api";
-import logger from "../app/utils/logger.server";
+import logger from "../app/utils/logger.client";
 
-vi.mock("../app/utils/logger.server", () => {
+vi.mock("../app/utils/logger.client", () => {
   const info = vi.fn();
   const warn = vi.fn();
   const error = vi.fn();

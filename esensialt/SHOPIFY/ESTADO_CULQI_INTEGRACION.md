@@ -278,3 +278,6 @@ Tener un flujo de pago completamente funcional donde:
 **Próximo paso:** Configurar llave pública en panel de Culqi con permisos de Checkout habilitados
 
 
+
+
+

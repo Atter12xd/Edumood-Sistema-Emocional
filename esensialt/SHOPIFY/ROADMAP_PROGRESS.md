@@ -5,23 +5,24 @@ Documento de tracking para el supervisor y el equipo técnico. Cada día registr
 ## 📊 Resumen de Progreso
 
 **Plan Original (17 días - ~2.5 semanas):**
-- ✅ **Semana 1 (Días 1-7):** **COMPLETADA** ✅
+- ✅ **Semana 1 (Días 1-7):** **COMPLETADA**
   - ✅ Días 1-3: Tests y configuración → **Completado** (documentado como "Día 1-3")
   - ✅ Días 4-5: Logging profesional → **Completado** (documentado como "Día 4-5")
   - ✅ Días 6-7: Refactorización y validaciones → **Completado** (documentado como "Día 6-7")
-- ✅ **Semana 2 (Días 8-14):** **EN PROGRESO** 
+- ✅ **Semana 2 (Días 8-14):** **EN PROGRESO**
   - ✅ Días 8-9: Debouncing y hooks compartidos → **Completado** (documentado como "Día 8-9")
   - ✅ Día 10: Tests finales y documentación → **Completado** (deploy pendiente - se guarda en GitHub)
-  - ⏸️ Días 11-14: Integración Culqi → **Pausado temporalmente** (ver `ESTADO_CULQI_INTEGRACION.md`)
+  - 🆕 **Día 11**: Diagnóstico Culqi + Vitest → **Completado (bloque externo)** — ver sección nueva
+  - ⏸️ Días 12-14: Integración Culqi pendiente de habilitación de Checkout (ver `ESTADO_CULQI_INTEGRACION.md`)
 - ⏸️ **Semana 3 (Días 15-17):** **PENDIENTE**
   - ⏸️ Días 15-17: Finalización Culqi y deploy → **Pendiente**
 
 **Estado Actual:**
 - ✅ **Semana 1: 100% Completada**
-- ✅ **Semana 2: 50% Completada** (Días 8-10 completados, Días 11-14 pausados)
+- ✅ **Semana 2: 65% Completada** (Días 8-11 cerrados; Días 12-14 dependen de Culqi)
 - ⏸️ **Semana 3: Pendiente** (depende de finalizar Culqi)
 
-**Nota:** El trabajo se completó en un orden diferente al plan original, pero todo el trabajo de los días 1-10 está terminado. El Día 4 (EXTRA) fue trabajo adicional no planificado. La integración de Culqi está pausada temporalmente pendiente de configuración de llave pública en el panel de Culqi.
+**Nota:** El trabajo se completó en un orden diferente al plan original, pero todo el trabajo de los días 1-11 está terminado. El Día 4 (EXTRA) fue trabajo adicional no planificado. La integración de Culqi está pausada temporalmente pendiente de habilitar el Checkout para la llave pública desde el panel de Culqi.
 
 > 📖 **Para más detalles:** Ver `ESTADO_PROYECTO.md` para explicación completa para equipo y supervisores.
 
@@ -64,9 +65,50 @@ npm run typecheck         # Verificar tipos TypeScript
 
 ---
 
+## Día 11 — Integración Culqi (bloque externo) & Vitest estable
+
+**Problema detectado:**
+- Culqi v4 mostraba “No ha ingresado la configuración o no es válida” pese a configurar correctamente la llave pública.
+- `_isCheckoutEnabled` aparecía en `false`, indicando que la llave no tiene habilitado Checkout en el panel de Culqi.
+- Al correr `npm run test:run` varias veces en Windows, Vitest detenía la ejecución con `Timeout starting threads runner`.
+
+**Solución implementada:**
+- Se reforzó `CulqiCheckout.tsx` con:
+  - Validación de moneda (`USD`/`PEN`) y fallback seguro.
+  - Logs detallados (`[CULQI][DEBUG]`) que indican el estado interno de Culqi y explican claramente la acción necesaria (habilitar Checkout en el panel).
+  - Archivos de apoyo para el equipo (`GUIA_RAPIDA_CULQI.md`, `INSTRUCCIONES_HABILITAR_CHECKOUT_CULQI.md`, `ESTADO_CULQI_INTEGRACION.md`) y un resumen ejecutivo para supervisión (`RESUMEN_CAMBIOS_SUPERVISOR.md`).
+- Se ajustó `vitest.config.ts` (pool `threads` con `singleThread`) para evitar que Vitest cree forks en PowerShell; los tests vuelven a correr siempre que se reinicie la terminal entre ejecuciones (limitación conocida en Vitest v4).
+- Los tests de `codform.api` ahora mockean `logger.client`, consistente con la implementación, para asegurar que las aserciones de logging se mantengan.
+
+**Arquitectura / Código clave:**
+- `app/routes/codform/components/CulqiCheckout.tsx` – nueva validación y logs.
+- `GUIA_RAPIDA_CULQI.md`, `INSTRUCCIONES_HABILITAR_CHECKOUT_CULQI.md`, `ESTADO_CULQI_INTEGRACION.md` – documentación operativa.
+- `RESUMEN_CAMBIOS_SUPERVISOR.md` – informe no técnico para stakeholders.
+- `vitest.config.ts` y `tests/codform.api.test.ts`.
+
+**Cómo probar:**
+```bash
+# 1) Ejecutar pruebas (en terminal recién abierta para evitar bug de Vitest)
+cd SHOPIFY
+npm run test:run
+
+# 2) Revisar logs de Culqi en navegador
+npm run preview
+# Abrir el modal y observar [CULQI][DEBUG] en la consola del navegador
+```
+
+**Estado de Culqi (externo):**
+- ✅ Código listo y validado.
+- ❌ Checkout deshabilitado en cuenta Culqi (`pk_test_dkeS17NBw8B1srCt`).
+- 📩 Acción pendiente: soporte de Culqi debe habilitar Checkout (se dejó texto sugerido).
+
+**Próximo paso:** Esperar respuesta de Culqi o usar una nueva llave con Checkout habilitado; al habilitarlo el modal funcionará sin cambios adicionales.
+
+---
+
 ## Día 1-3 — Base técnica ausente (tests y configuración)
 
-**Nota:** Según el plan original, estos eran Días 1-3, pero se completaron en una sesión.
+
 
 **Problema detectado (negocio / supervisor):**
 - No existían pruebas automatizadas; cualquier cambio podía romper producción sin darnos cuenta.
@@ -86,14 +128,14 @@ npm run typecheck         # Verificar tipos TypeScript
 **Cómo probar (comandos):**
 ```bash
 cd SHOPIFY
-npm run test:run      # 28 tests (a partir del Día 3) — evidencia automatizada
+npm run test:run      
 ```
 
 ---
 
 ## Día 6-7 — Componente gigante y sin modularidad / validaciones débiles
 
-**Nota:** Según el plan original, este trabajo correspondía a los Días 6-7, pero se completó antes como "Día 2" en el roadmap.
+**Nota:** Según el plan original, este trabajo correspondía a los Días 6-7, pero se completó antes como  en el roadmap.
 
 **Problema detectado:**
 - `codform.tsx` superaba +400 líneas mezclando estado, fetch, UI y manejo de pantalla.
@@ -104,7 +146,7 @@ npm run test:run      # 28 tests (a partir del Día 3) — evidencia automatizad
 - Extract `useCodFormState.ts` (estado, efectos, handlers) y `codform.api.ts` (fetch + upsert reutilizable).
 - Integración de **Zod** (`validation/codform.validation.ts`) + mensajes visibles por campo (`FormContent`), bloqueando guardados inválidos.
 - Pruebas unitarias nuevas: `tests/codform.validation.test.ts` (4 casos) → suite total **28 tests** (desde Día 3 se suman logs).
-- Documentación actualizada (sección “Avances Día 2” en `presentar.md` + `TESTING_SETUP.md`).
+- Documentación actualizada (sección  en `presentar.md` + `TESTING_SETUP.md`).
 
 **Arquitectura / Código clave:**
 - `app/routes/codform/codform.tsx` (render limpio). Hook + service en `hooks/useCodFormState.ts` y `services/codform.api.ts`.
@@ -126,7 +168,7 @@ npm run preview           # http://localhost:3000 → interactuar con formulario
 
 ## Día 4-5 — Logging profesional & configuración avanzada
 
-**Nota:** Según el plan original, este trabajo correspondía a los Días 4-5, pero se completó como "Día 3" en el roadmap.
+**Nota:** Según el plan original, este trabajo correspondía a los Días 4-5, pero se completó despues en el roadmap.
 
 **Problema detectado (inicio de jornada):**
 - Falta de observabilidad: el flujo `COD Form → API` solo usa `console.log`, lo que impide diferenciar severidad (info/warn/error) y rastrear fallos en producción.
